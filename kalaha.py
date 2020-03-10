@@ -79,19 +79,23 @@ class Kalaha():
         The 'hole' number picked by the player.
         '''
         self.printboard(player)
+        
         while True:
-            pick = int(input("Pick a slot: "))
-            pick =  pick - 1
-            if pick in [0,1,2,3,4,5]:
-                if player == 1:
-                    if self.board[pick] != 0:
-                        break
-                elif player == 2:
-                    if self.board[pick + 7] != 0:
-                        break
-            print("Pick a proper slot")
-                    
+            try:
+                pick = int(input("Pick a slot: "))
+                pick =  pick - 1
+                if pick in [0,1,2,3,4,5]:
+                    if player == 1:
+                        if self.board[pick] != 0:
+                            break
+                    elif player == 2:
+                        if self.board[pick + 7] != 0:
+                            break
+                print("Pick a proper slot")
+            except:
+                print("Input a number you donut")
         return pick
+
 
     def move(self, player, pick):
         if player == 1:
@@ -148,7 +152,14 @@ class Kalaha():
                 kalaha.move(2, pick)
                 
 
-
+    def winner(self):
+        if self.board[6] > self.board[13]:
+            winner = 1
+        elif self.board[6] < self.board[13]:
+            winner = 2
+        else:
+            winner = 3 # draw
+        return winner
         
         
 kalaha = Kalaha()
@@ -160,7 +171,7 @@ while True:
         kalaha.move(1, pick)
         print('\n')
     else:
-        winner = 1
+        winner = kalaha.winner()
         break
     if not kalaha.gameOver():
         print("Turn of player 2")
@@ -168,11 +179,16 @@ while True:
         kalaha.move(2,pick)
         print('\n')
     else:
-        winner = 2
+        winner = kalaha.winner()
         break
     
-kalaha.printboard()
 print("GAME OVER!")
-print("Player",winner,"won")
+if winner == 3:
+    print("The game was a draw")
+    print(kalaha.printboard(1))
+else:
+    print("The winner is Player",winner)
+    kalaha.printboard(winner)
+
 
 
