@@ -152,7 +152,7 @@ class Kalaha():
         
         
 kalaha = Kalaha()
-
+winner = None
 while True:
     if not kalaha.gameOver():
         print("Turn of player 1")
@@ -160,6 +160,7 @@ while True:
         kalaha.move(1, pick)
         print('\n')
     else:
+        winner = 1
         break
     if not kalaha.gameOver():
         print("Turn of player 2")
@@ -167,7 +168,11 @@ while True:
         kalaha.move(2,pick)
         print('\n')
     else:
+        winner = 2
         break
-        
+    
+kalaha.printboard()
+print("GAME OVER!")
+print("Player",winner,"won")
 
 
