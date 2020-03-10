@@ -80,58 +80,58 @@ class Player:
 
     def move(self, board, pick):
         if self.player_no == 1:
-            beans = board[pick]
-            board[pick] = 0
+            beans = board.board[pick]
+            board.board[pick] = 0
             putinto = pick
             while beans > 0:
                 putinto = (putinto + 1) % 13
                 # doesnt get into player 2s kalaha
-                board[putinto] += 1
+                board.board[putinto] += 1
                 beans -= 1
         else:
             pick = pick + 7
-            beans = board[pick]
-            board[pick] = 0
+            beans = board.board[pick]
+            board.board[pick] = 0
             putinto = pick
             while beans > 0:
                 putinto = (putinto + 1) % 14
                 if putinto == 6:
                     putinto += 1 # skip player 1s kalaha
-                board[putinto] += 1
+                board.board[putinto] += 1
                 beans -= 1
-        self.printboard(0)
+        board.printboard(0)
 
 # if you land in your own empty 'thing' you get that into the kalaha
 # plus the pieces directly opposite
-        if (board[putinto] == 1 and (putinto not in [6,13])):
+        if (board.board[putinto] == 1 and (putinto not in [6,13])):
             if self.player_no == 1:
                 if putinto in range(0,6):
-                    board[putinto] = 0
-                    board[6] += 1
-                    oppositeSideIndex = self.oppositeside[putinto]
-                    oppositeSide = board[oppositeSideIndex]
-                    board[oppositeSideIndex] = 0
-                    board[6] += oppositeSide
+                    board.board[putinto] = 0
+                    board.board[6] += 1
+                    oppositeSideIndex = board.oppositeside[putinto]
+                    oppositeSide = board.board[oppositeSideIndex]
+                    board.board[oppositeSideIndex] = 0
+                    board.board[6] += oppositeSide
             else:
                 if putinto in range(7,13):
-                    board[putinto] = 0
-                    board[13] += 1
+                    board.board[putinto] = 0
+                    board.board[13] += 1
                     oppositeSideIndex = self.oppositeside[putinto]
-                    oppositeSide = board[oppositeSideIndex]
-                    board[oppositeSideIndex] = 0
-                    board[13] += oppositeSide
+                    oppositeSide = board.board[oppositeSideIndex]
+                    board.board[oppositeSideIndex] = 0
+                    board.board[13] += oppositeSide
                 
         
         # if it ends in kalaha
-        if (not self.gameOver()):
+        if (not board.game_over()):
             if self.player_no == 1:
                 if putinto == 6:
-                    pick = kalaha.player_move(1)
-                    kalaha.move(1, pick)
+                    pick = kalaha.player_input(1)
+                    self.move(board, pick)
             else:
                 if putinto == 13:
-                    pick = kalaha.player_move(2)
-                    kalaha.move(2, pick)
+                    pick = kalaha.player_input(2)
+                    self.move(board, pick)
 
 
 
@@ -153,28 +153,28 @@ class Kalaha():
         while True:
             if not self.board.game_over():
                 print("Turn of player 1")
-                pick = self.board.player_input(1)
-                self.player_1.move(1, self.board, pick)
+                pick = self.player_input(1)
+                self.player_1.move(self.board, pick)
                 print('\n' * 100) 
             else:
-                winner = kalaha.winner()
+                winner = self.board.winner()
                 break
-            if not kalaha.gameOver():
+            if not self.board.game_over():
                 print("Turn of player 2")
-                pick = kalaha.player_move(2)
-                kalaha.move(2,pick)
+                pick = self.player_input(2)
+                self.player_2.move(self.board,pick)
                 print('\n' * 100)
             else:
-                winner, score = kalaha.winner()
+                winner, score = self.board.winner()
                 break
             
         print("GAME OVER!")
         if winner == 3:
             print("The game was a draw")
-            print(kalaha.printboard(1))
+            self.board.printboard(1)
         else:
             print("The winner is Player", winner, " with score", score)
-            kalaha.printboard(winner)
+            self.board.printboard(winner)
 
 
     def player_input(self,player):
@@ -188,7 +188,7 @@ class Kalaha():
         -------
         The 'hole' number picked by the player.
         '''
-        self.printboard(player)
+        self.board.printboard(player)
         
         while True:
             try:
@@ -196,10 +196,10 @@ class Kalaha():
                 pick =  pick - 1
                 if pick in [0,1,2,3,4,5]:
                     if player == 1:
-                        if board[pick] != 0:
+                        if self.board.board[pick] != 0:
                             break
                     elif player == 2:
-                        if board[pick + 7] != 0:
+                        if self.board.board[pick + 7] != 0:
                             break
                 print("Pick a proper slot")
             except:
@@ -208,12 +208,8 @@ class Kalaha():
 
 
 
-                
-
-
-        
-        
 kalaha = Kalaha()
+kalaha.start()
 
 
 
