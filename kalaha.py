@@ -1,11 +1,11 @@
 class Board:
     def __init__(self):
-        self.board = [4,4,4,4,4,4,0,4,4,4,4,4,4,0]
-        self.oppositeside = dict()
+        self.board = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
+        self.opposite_pit = dict()
         for i in range(6):
-            self.oppositeside[i] = 12-i
-        for i in range(7,13):
-            self.oppositeside[i] = 12-i
+            self.opposite_pit[i] = 12-i
+        for i in range(7, 13):
+            self.opposite_pit[i] = 12-i
 
     def game_over(self):
         '''
@@ -15,8 +15,8 @@ class Board:
             return True
         else:
             return False
-            
-    def printboard(self, player):
+
+    def print_board(self, player):
         '''
         Prints the board. 
 
@@ -36,38 +36,37 @@ class Board:
         elif player == 0:
             p2 = '     '
             p1 = '     '
-        else: 
+        else:
             raise Exception('Invalid player number')
 
-        print(p2,end='')
-        for i in range(6,0,-1):
+        print(p2, end='')
+        for i in range(6, 0, -1):
             print(f'{i:^5}', end='')
         print('')
         print("-"*40)
-        for i in range(1,8):
+        for i in range(1, 8):
             print(f'{self.board[-i]:^5}', end='')
-        print('\n\n     ',end='')
-        for i in range(0,7):
+        print('\n\n     ', end='')
+        for i in range(0, 7):
             print(f'{self.board[i]:^5}', end='')
         print('')
         print("-"*40)
-        print(p1,end='')
-        for i in range(1,7):
+        print(p1, end='')
+        for i in range(1, 7):
             print(f'{i:^5}', end='')
         print("")
 
-
     def winner(self):
-        player1score = sum(self.board[0:7])
-        player2score = sum(self.board[7:14])
-        score = player1score
-        if  player1score > player2score:
+        player_1_score = sum(self.board[0:7])
+        player_2_score = sum(self.board[7:14])
+        score = player_1_score
+        if player_1_score > player_2_score:
             winner = 1
-        elif player2score > player1score:
+        elif player_2_score > player_1_score:
             winner = 2
-            score = player2score
+            score = player_2_score
         else:
-            winner = 3 # draw
+            winner = 3  # draw
         return winner, score
 
 
@@ -80,66 +79,68 @@ class Player:
 
     def move(self, board, pick):
         if self.player_no == 1:
+            # Pick up the beans
             beans = board.board[pick]
             board.board[pick] = 0
-            putinto = pick
+            pit_no = pick
+            # Distribute them
             while beans > 0:
-                putinto = (putinto + 1) % 13
+                pit_no = (pit_no + 1) % 13
                 # doesnt get into player 2s kalaha
-                board.board[putinto] += 1
+                board.board[pit_no] += 1
                 beans -= 1
         else:
             pick = pick + 7
             beans = board.board[pick]
             board.board[pick] = 0
-            putinto = pick
+            pit_no = pick
             while beans > 0:
-                putinto = (putinto + 1) % 14
-                if putinto == 6:
-                    putinto += 1 # skip player 1s kalaha
-                board.board[putinto] += 1
+                pit_no = (pit_no + 1) % 14
+                if pit_no == 6:
+                    pit_no += 1  # skip player 1s kalaha
+                board.board[pit_no] += 1
                 beans -= 1
-        board.printboard(0)
+        board.print_board(0)
 
 # if you land in your own empty 'thing' you get that into the kalaha
 # plus the pieces directly opposite
-        if (board.board[putinto] == 1 and (putinto not in [6,13])):
-            if self.player_no == 1:
-                if putinto in range(0,6):
-                    board.board[putinto] = 0
-                    board.board[6] += 1
-                    oppositeSideIndex = board.oppositeside[putinto]
-                    oppositeSide = board.board[oppositeSideIndex]
-                    board.board[oppositeSideIndex] = 0
-                    board.board[6] += oppositeSide
-            else:
-                if putinto in range(7,13):
-                    board.board[putinto] = 0
-                    board.board[13] += 1
-                    oppositeSideIndex = self.oppositeside[putinto]
-                    oppositeSide = board.board[oppositeSideIndex]
-                    board.board[oppositeSideIndex] = 0
-                    board.board[13] += oppositeSide
-                
-        
+        if self.can_capture(board, pit_no):
+            self.capture(board, pit_no)
+
         # if it ends in kalaha
         if (not board.game_over()):
             if self.player_no == 1:
-                if putinto == 6:
+                if pit_no == 6:
                     pick = kalaha.player_input(1)
                     self.move(board, pick)
             else:
-                if putinto == 13:
+                if pit_no == 13:
                     pick = kalaha.player_input(2)
                     self.move(board, pick)
 
+    def can_capture(self, board, last_pit):
+        if (board.board[last_pit] == 1 and (last_pit not in [6, 13])):
+            if self.player_no == 1 and last_pit in range(0, 6) or (self.player_no == 2 and last_pit in range(7, 13)):
+                return True
+        else:
+            return False
 
+    def capture(self, board, pit_no):
+        if self.player_no == 1:
+            board.board[pit_no] = 0
+            board.board[6] += 1
+            opposite_pitIndex = board.opposite_pit[pit_no]
+            opposite_pit = board.board[opposite_pitIndex]
+            board.board[opposite_pitIndex] = 0
+            board.board[6] += opposite_pit
 
-
-        
-
-    
-    
+        elif self.player_no == 2:
+            board.board[pit_no] = 0
+            board.board[13] += 1
+            opposite_pitIndex = board.opposite_pit[pit_no]
+            opposite_pit = board.board[opposite_pitIndex]
+            board.board[opposite_pitIndex] = 0
+            board.board[13] += opposite_pit
 
 
 class Kalaha():
@@ -148,36 +149,34 @@ class Kalaha():
         self.player_1 = Player(1)
         self.player_2 = Player(2)
 
-
     def start(self):
         while True:
             if not self.board.game_over():
                 print("Turn of player 1")
                 pick = self.player_input(1)
                 self.player_1.move(self.board, pick)
-                print('\n' * 100) 
+                print('\n' * 100)
             else:
                 winner = self.board.winner()
                 break
             if not self.board.game_over():
                 print("Turn of player 2")
                 pick = self.player_input(2)
-                self.player_2.move(self.board,pick)
+                self.player_2.move(self.board, pick)
                 print('\n' * 100)
             else:
                 winner, score = self.board.winner()
                 break
-            
+
         print("GAME OVER!")
         if winner == 3:
             print("The game was a draw")
-            self.board.printboard(1)
+            self.board.print_board(1)
         else:
             print("The winner is Player", winner, " with score", score)
-            self.board.printboard(winner)
+            self.board.print_board(winner)
 
-
-    def player_input(self,player):
+    def player_input(self, player):
         '''
         Gets a 'pit' picked by a player. 
         Parameters
@@ -188,13 +187,13 @@ class Kalaha():
         -------
         The 'hole' number picked by the player.
         '''
-        self.board.printboard(player)
-        
+        self.board.print_board(player)
+
         while True:
             try:
                 pick = int(input("Pick a slot: "))
-                pick =  pick - 1
-                if pick in [0,1,2,3,4,5]:
+                pick = pick - 1
+                if pick in [0, 1, 2, 3, 4, 5]:
                     if player == 1:
                         if self.board.board[pick] != 0:
                             break
@@ -207,10 +206,5 @@ class Kalaha():
         return pick
 
 
-
 kalaha = Kalaha()
 kalaha.start()
-
-
-
-
