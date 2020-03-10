@@ -2,18 +2,10 @@ class Kalaha():
     def __init__(self):
         self.board = [4,4,4,4,4,4,0,4,4,4,4,4,4,0]
         self.oppositeside = dict()
-        self.oppositeside[0] = 12
-        self.oppositeside[1] = 11
-        self.oppositeside[2] = 10
-        self.oppositeside[3] = 9
-        self.oppositeside[4] = 8
-        self.oppositeside[5] = 7
-        self.oppositeside[7] = 5
-        self.oppositeside[8] = 4
-        self.oppositeside[9] = 3
-        self.oppositeside[10] = 2
-        self.oppositeside[11] = 1
-        self.oppositeside[12] = 0
+        for i in range(6):
+            self.oppositeside[i] = 12-i
+        for i in range(7,13):
+            self.oppositeside[i] = 12-i
         
         
         
@@ -114,7 +106,7 @@ class Kalaha():
             putinto = pick
             while beans > 0:
                 putinto = (putinto + 1) % 14
-                if putinto == 0:
+                if putinto == 6:
                     putinto += 1 # skip player 1s kalaha
                 self.board[putinto] += 1
                 beans -= 1
@@ -142,24 +134,29 @@ class Kalaha():
                 
         
         # if it ends in kalaha
-        if player == 1:
-            if putinto == 6:
-                pick = kalaha.player_move(1)
-                kalaha.move(1, pick)
-        else:
-            if putinto == 13:
-                pick = kalaha.player_move(2)
-                kalaha.move(2, pick)
+        if (not self.gameOver()):
+            if player == 1:
+                if putinto == 6:
+                    pick = kalaha.player_move(1)
+                    kalaha.move(1, pick)
+            else:
+                if putinto == 13:
+                    pick = kalaha.player_move(2)
+                    kalaha.move(2, pick)
                 
 
     def winner(self):
-        if self.board[6] > self.board[13]:
+        player1score = sum(self.board[0:7])
+        player2score = sum(self.board[7:14])
+        score = player1score
+        if  player1score > player2score:
             winner = 1
-        elif self.board[6] < self.board[13]:
+        elif player2score > player1score:
             winner = 2
+            score = player2score
         else:
             winner = 3 # draw
-        return winner
+        return winner, score
         
         
 kalaha = Kalaha()
@@ -179,7 +176,7 @@ while True:
         kalaha.move(2,pick)
         print('\n')
     else:
-        winner = kalaha.winner()
+        winner, score = kalaha.winner()
         break
     
 print("GAME OVER!")
@@ -187,7 +184,7 @@ if winner == 3:
     print("The game was a draw")
     print(kalaha.printboard(1))
 else:
-    print("The winner is Player",winner)
+    print("The winner is Player", winner, " with score", score)
     kalaha.printboard(winner)
 
 
