@@ -169,7 +169,7 @@ while True:
         print("Turn of player 1")
         pick = kalaha.player_move(1)
         kalaha.move(1, pick)
-        print('\n')
+        print('\n' * 100) 
     else:
         winner = kalaha.winner()
         break
@@ -177,7 +177,7 @@ while True:
         print("Turn of player 2")
         pick = kalaha.player_move(2)
         kalaha.move(2,pick)
-        print('\n')
+        print('\n' * 100)
     else:
         winner = kalaha.winner()
         break
