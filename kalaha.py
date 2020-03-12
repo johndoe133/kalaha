@@ -157,7 +157,7 @@ class Kalaha():
                 self.player_1.move(self.board, pick)
                 print('\n' * 100)
             else:
-                winner = self.board.winner()
+                winner, score = self.board.winner()
                 break
             if not self.board.game_over():
                 print("Turn of player 2")
