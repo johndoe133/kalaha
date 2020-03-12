@@ -75,7 +75,6 @@ class Board:
             winner = 3  # draw
         return winner, score
 
-
 class Player:
     def __init__(self, player_no):
         self.player_no = player_no
@@ -176,7 +175,7 @@ class Player:
         The board the player is currently using
 
         pit_no : int
-        
+
         The pit the player is placing their last bean in
         """
         if self.player_no == 1:
@@ -194,7 +193,6 @@ class Player:
             opposite_pit = board.board[opposite_pitIndex]
             board.board[opposite_pitIndex] = 0
             board.board[13] += opposite_pit
-
 
 class Kalaha():
     def __init__(self):
@@ -258,6 +256,7 @@ class Kalaha():
                 print("Input a number you donut")
         return pick
 
+if __name__ == '__main__':
+    kalaha = Kalaha()
+    kalaha.start()
 
-kalaha = Kalaha()
-kalaha.start()
