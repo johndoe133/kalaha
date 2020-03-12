@@ -205,8 +205,8 @@ class Kalaha():
         '''
         Starts the kalaha game. Ends when one player wins.
         '''
-        game_is_over=True
-        while game_is_over:
+        game_over = False
+        while not game_over:
             for player in self.players:
                 if not self.board.game_over():
                     print("Turn of player", player.player_no)
@@ -214,7 +214,7 @@ class Kalaha():
                     player.move(self.board, pick)
                     print('\n' * 2)
                 else:
-                    winner, score = self.board.winner()
+                    winner, score = self.board.check_winner()
                     print("GAME OVER!")
                     if winner == 3:
                         print("The game was a draw")
@@ -222,7 +222,7 @@ class Kalaha():
                     else:
                         print("The winner is Player", winner, " with score", score)
                         self.board.print_board(winner)
-                    game_is_over=False
+                    game_over = True
                     break
         
 
