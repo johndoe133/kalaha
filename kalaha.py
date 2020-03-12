@@ -214,7 +214,7 @@ class Kalaha():
                     player.move(self.board, pick)
                     print('\n' * 2)
                 else:
-                    winner, score = self.board.winner()
+                    winner, score = self.board.check_winner()
                     print("GAME OVER!")
                     if winner == 3:
                         print("The game was a draw")
