@@ -54,12 +54,12 @@ class Board:
             print(f'{i:^5}', end='')
         print("")
 
-    def result(self, state, action, player_no):
+    def result(self, state, action, player):
         switch_turns = True
-        if self.player_no == 1:
+        if player.player_no == 1:
             # Pick up the beans
             beans = state[action]
-            board.state[action] = 0
+            state[action] = 0
             pit_no = action
             # Distribute them
             while beans > 0:
@@ -69,12 +69,12 @@ class Board:
                 beans -= 1
             # if you land in your own empty 'thing' you get that into the kalaha
             # plus the pieces directly opposite
-            if self.can_capture(state, pit_no):
-                self.capture(state, pit_no)
+            if player.can_capture(state, pit_no):
+                player.capture(state, pit_no)
         else:
             action = action + 7
             beans = state[action]
-            board.state[action] = 0
+            state[action] = 0
             pit_no = action
             while beans > 0:
                 pit_no = (pit_no + 1) % 14
@@ -82,17 +82,16 @@ class Board:
                     pit_no += 1  # skip player 1s kalaha
                 state[pit_no] += 1
                 beans -= 1
-            if self.can_capture(state, pit_no):
-                self.capture(state, pit_no)
+            if player.can_capture(state, pit_no):
+                player.capture(state, pit_no)
 
         if (not Board.game_over(state)):
-            if self.player_no == 1:
+            if player.player_no == 1:
                 if pit_no == 6:
                     switch_turns = False
             else:
                 if pit_no == 13:
                     switch_turns = False
-
         return state, switch_turns
 
     def check_winner(self, state):
@@ -155,49 +154,12 @@ class Player:
         
         The pit the player has picked
         """
-        if self.player_no == 1:
-            # Pick up the beans
-            beans = board.state[pick]
-            board.state[pick] = 0
-            pit_no = pick
-            # Distribute them
-            while beans > 0:
-                pit_no = (pit_no + 1) % 13
-                # doesnt get into player 2s kalaha
-                board.state[pit_no] += 1
-                beans -= 1
-            # if you land in your own empty 'thing' you get that into the kalaha
-            # plus the pieces directly opposite
-            if self.can_capture(board.state, pit_no):
-                self.capture(board.state, pit_no)
-        else:
-            pick = pick + 7
-            beans = board.state[pick]
-            board.state[pick] = 0
-            pit_no = pick
-            while beans > 0:
-                pit_no = (pit_no + 1) % 14
-                if pit_no == 6:
-                    pit_no += 1  # skip player 1s kalaha
-                board.state[pit_no] += 1
-                beans -= 1
-            if self.can_capture(board.state, pit_no):
-                self.capture(board.state, pit_no)
+        state, switch_turns = board.result(board.state, pick, self)
+        board.board = state
         print("\n")
         board.print_board(0)
         print("\n")
-
-        # if it ends in kalaha
-        if (not board.game_over(board.state)):
-            if self.player_no == 1:
-                if pit_no == 6:
-                    pick = kalaha.player_input(1)
-                    self.move(board, pick)
-            else:
-                if pit_no == 13:
-                    pick = kalaha.player_input(2)
-                    self.move(board, pick)
-        return board
+        return state, switch_turns
 
     
     def can_capture(self, state, last_pit):
@@ -279,10 +241,12 @@ class Kalaha():
         while not game_over:
             for player in self.players:
                 if not self.board.game_over(self.board.state):
-                    print("Turn of player", player.player_no)
-                    pick = self.player_input(player.player_no)
-                    player.move(self.board, pick)
-                    print('\n' * 2)
+                    switch_turns = False
+                    while not switch_turns:
+                        print("Turn of player", player.player_no)
+                        pick = self.player_input(player.player_no)
+                        s, switch_turns = player.move(self.board, pick)
+                        print('\n' * 2)
                 else:
                     self.announce_winner()
                     game_over = True
