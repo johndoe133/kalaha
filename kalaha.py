@@ -97,20 +97,7 @@ class Player:
         self.player_no = player_no
         self.score = 0
 
-    def move(self, board, pick):
-        """
-        Moves the pieces according to player selection
-
-        Parameters
-        ----------
-        board : Board 
-
-        The board the player is currently playing on
-
-        pick : int
-        
-        The pit the player has picked
-        """
+    def result(self, board, pick):
         if self.player_no == 1:
             # Pick up the beans
             beans = board.board[pick]
@@ -139,13 +126,6 @@ class Player:
                 beans -= 1
             if self.can_capture(board, pit_no):
                 self.capture(board, pit_no)
-        print("\n")
-        board.print_board(0)
-        print("\n")
-        return board
-
-        
-
         # if it ends in kalaha
         if (not board.game_over()):
             if self.player_no == 1:
@@ -156,6 +136,32 @@ class Player:
                 if pit_no == 13:
                     pick = kalaha.player_input(2)
                     self.move(board, pick)
+                    
+        return board
+        
+    def move(self, board, pick):
+        """
+        Moves the pieces according to player selection and prints the result
+
+        Parameters
+        ----------
+        board : Board 
+
+        The board the player is currently playing on
+
+        pick : int
+        
+        The pit the player has picked
+        """
+        self.result(board, pick)
+        print("\n")
+        board.print_board(0)
+        print("\n")
+
+
+        
+
+
 
     
     def can_capture(self, board, last_pit):
@@ -266,7 +272,7 @@ class Kalaha():
                     break
 
             ### player AI turn
-            pick = AI.find_best_move(self.board)
+            pick = AI.alpha_beta_search(self.board)
             player[1].move(self.board, pick)
 
         
