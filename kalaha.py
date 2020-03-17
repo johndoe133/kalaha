@@ -75,6 +75,23 @@ class Board:
             winner = 3  # draw
         return winner, score
 
+    def possible_moves(self, player1):
+        """
+        Finds the possible picks for player_no
+        """
+        moves = []
+        #if player_no == 2
+        a=7
+        b=13
+        if (player1):
+            a = 0
+            b=6
+        
+        for i in range(a,b):
+            if (self.board[i] != 0):
+                moves += [i]
+        return moves
+
 class Player:
     def __init__(self, player_no):
         self.player_no = player_no
@@ -125,7 +142,7 @@ class Player:
         print("\n")
         board.print_board(0)
         print("\n")
-
+        return board
 
         
 
@@ -201,6 +218,17 @@ class Kalaha():
         self.player_1 = Player(1)
         self.player_2 = Player(2)
 
+    def announce_winner(self):
+        winner, score = self.board.check_winner()
+        print("GAME OVER!")
+        if winner == 3:
+            print("The game was a draw")
+            self.board.print_board(0)
+        else:
+            print("The winner is Player", winner, " with score", score)
+            self.board.print_board(winner)
+
+
     def start(self):
         '''
         Starts the kalaha game. Ends when one player wins.
@@ -214,16 +242,32 @@ class Kalaha():
                     player.move(self.board, pick)
                     print('\n' * 2)
                 else:
-                    winner, score = self.board.check_winner()
-                    print("GAME OVER!")
-                    if winner == 3:
-                        print("The game was a draw")
-                        self.board.print_board(0)
-                    else:
-                        print("The winner is Player", winner, " with score", score)
-                        self.board.print_board(winner)
+                    self.announce_winner()
                     game_over = True
                     break
+
+    def start_against_ai(self):
+        '''
+        Starts the kalaha game. Ends when one player wins.
+        '''
+        ai = ai()
+        game_over = False
+        while not game_over:
+            ### player 1 turn
+            for player in self.players[0:1]:
+                if not self.board.game_over():
+                    print("Turn of player", player.player_no)
+                    pick = self.player_input(player.player_no)
+                    player.move(self.board, pick)
+                    print('\n' * 2)
+                else:
+                    self.announce_winner()
+                    break
+
+            ### player AI turn
+            pick = AI.find_best_move(self.board)
+            player[1].move(self.board, pick)
+
         
 
     def player_input(self, player):
