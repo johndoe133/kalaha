@@ -250,7 +250,8 @@ class Kalaha():
         '''
         Starts the kalaha game. Ends when one player wins.
         '''
-        ai = ai()
+        from AI import AI
+        AI = AI(self.board)
         game_over = False
         while not game_over:
             ### player 1 turn

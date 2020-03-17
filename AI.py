@@ -1,22 +1,22 @@
-from kalaha import Board, Player
+from kalaha import Kalaha, Board, Player
 import math
 
 class AI():
-    def __init__(self):
+    def __init__(self, board):
         self.boards = []
         self.players = [Player(1), Player(2)]
-        self.node = Node()
+        self.node = Node(board)
     
     def find_best_move(self, board):
         moves = board.possible_moves(2)
         for move in moves:
             board_copy = Board()
             board_copy.board = board.board
-            boards += [players[1].move(board_copy, move)]
-        for board in boards:
+            self.boards += [self.players[1].move(board_copy, move)]
+        for board in self.boards:
             game_over = False
             while not game_over:
-                for player in players:
+                for player in self.players:
                     if not board.game_over():
                         print("Turn of player", player.player_no)
                         pick = random
@@ -85,4 +85,5 @@ class Node:
         self.board = board # state of the board
         self.max = True    # is it max or min
 
-    
+kalaha = Kalaha()
+kalaha.start_against_ai()   
