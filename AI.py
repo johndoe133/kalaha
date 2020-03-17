@@ -39,10 +39,12 @@ class AI():
         for move in board.possible_moves(True):
             board_copy = Board()
             board_copy.board = board.board
-            # make the move
+            board_copy.board = self.players[2].move(board_copy,move) # make the move
+            
             new_node = Node(board_copy)
             new.node.parent = node
             node.children.append(new_node)
+            # child node now contain updated board
         for child_node in node.children:
             v = max(v, min_value(child_node.board, alpha, beta, child_node))
             if v >= beta:
@@ -58,6 +60,7 @@ class AI():
             board_copy = Board()
             board_copy.board = board.board
             # make the move and make a new node with the result of that move
+            board_copy.board = self.players[1].move(board_copy,move)
             new_node = Node(board_copy)
             new.node.parent = node
             node.children.append(new_node)
