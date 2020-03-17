@@ -4,7 +4,6 @@ class Board:
         opposite_pit[i] = 12-i
     for i in range(7, 13):
         opposite_pit[i] = 12-i
-
     def __init__(self):
         self.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
         
