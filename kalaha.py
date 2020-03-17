@@ -1,13 +1,16 @@
 class Board:
+    opposite_pit = dict()
+    for i in range(6):
+        opposite_pit[i] = 12-i
+    for i in range(7, 13):
+        opposite_pit[i] = 12-i
+
     def __init__(self):
         self.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
-        self.opposite_pit = dict()
-        for i in range(6):
-            self.opposite_pit[i] = 12-i
-        for i in range(7, 13):
-            self.opposite_pit[i] = 12-i
+        
 
-    def game_over(self, state):
+    @staticmethod
+    def game_over(state):
         '''
         Checks if the game is over
         '''
@@ -50,6 +53,47 @@ class Board:
         for i in range(1, 7):
             print(f'{i:^5}', end='')
         print("")
+
+    def result(self, state, action, player_no):
+        switch_turns = True
+        if self.player_no == 1:
+            # Pick up the beans
+            beans = state[action]
+            board.state[action] = 0
+            pit_no = action
+            # Distribute them
+            while beans > 0:
+                pit_no = (pit_no + 1) % 13
+                # doesn't get into player 2s kalaha
+                state[pit_no] += 1
+                beans -= 1
+            # if you land in your own empty 'thing' you get that into the kalaha
+            # plus the pieces directly opposite
+            if self.can_capture(state, pit_no):
+                self.capture(state, pit_no)
+        else:
+            action = action + 7
+            beans = state[action]
+            board.state[action] = 0
+            pit_no = action
+            while beans > 0:
+                pit_no = (pit_no + 1) % 14
+                if pit_no == 6:
+                    pit_no += 1  # skip player 1s kalaha
+                state[pit_no] += 1
+                beans -= 1
+            if self.can_capture(state, pit_no):
+                self.capture(state, pit_no)
+
+        if (not Board.game_over(state)):
+            if self.player_no == 1:
+                if pit_no == 6:
+                    switch_turns = False
+            else:
+                if pit_no == 13:
+                    switch_turns = False
+
+        return state, switch_turns
 
     def check_winner(self, state):
         '''
@@ -95,7 +139,7 @@ class Board:
 class Player:
     def __init__(self, player_no):
         self.player_no = player_no
-        self.score = 0
+        self.score = 0        
 
     def move(self, board, pick):
         """
@@ -125,7 +169,7 @@ class Player:
             # if you land in your own empty 'thing' you get that into the kalaha
             # plus the pieces directly opposite
             if self.can_capture(board.state, pit_no):
-                self.capture(board, pit_no)
+                self.capture(board.state, pit_no)
         else:
             pick = pick + 7
             beans = board.state[pick]
@@ -138,7 +182,7 @@ class Player:
                 board.state[pit_no] += 1
                 beans -= 1
             if self.can_capture(board.state, pit_no):
-                self.capture(board, pit_no)
+                self.capture(board.state, pit_no)
         print("\n")
         board.print_board(0)
         print("\n")
@@ -177,7 +221,7 @@ class Player:
         else:
             return False
 
-    def capture(self, board, pit_no):
+    def capture(self, state, pit_no):
         """
         Captures the player's last piece placed, as well as the pieces opposite
 
@@ -194,20 +238,20 @@ class Player:
         The pit the player is placing their last bean in
         """
         if self.player_no == 1:
-            board.state[pit_no] = 0
-            board.state[6] += 1
-            opposite_pitIndex = board.opposite_pit[pit_no]
-            opposite_pit = board.state[opposite_pitIndex]
-            board.state[opposite_pitIndex] = 0
-            board.state[6] += opposite_pit
+            state[pit_no] = 0
+            state[6] += 1
+            opposite_pitIndex = Board.opposite_pit[pit_no]
+            opposite_pit = state[opposite_pitIndex]
+            state[opposite_pitIndex] = 0
+            state[6] += opposite_pit
 
         elif self.player_no == 2:
-            board.state[pit_no] = 0
-            board.state[13] += 1
-            opposite_pitIndex = board.opposite_pit[pit_no]
-            opposite_pit = board.state[opposite_pitIndex]
-            board.state[opposite_pitIndex] = 0
-            board.state[13] += opposite_pit
+            state[pit_no] = 0
+            state[13] += 1
+            opposite_pitIndex = Board.opposite_pit[pit_no]
+            opposite_pit = state[opposite_pitIndex]
+            state[opposite_pitIndex] = 0
+            state[13] += opposite_pit
 
 class Kalaha():
     def __init__(self):
