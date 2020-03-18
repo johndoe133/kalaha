@@ -236,11 +236,26 @@ class Kalaha():
         game_over = False
         while not game_over:
             for player in self.players:
+<<<<<<< Updated upstream
                 if not self.board.game_over():
                     print("Turn of player", player.player_no)
                     pick = self.player_input(player.player_no)
                     player.move(self.board, pick)
                     print('\n' * 2)
+=======
+                if not self.board.game_over(self.board.state):
+                    switch_turns = False
+                    while not switch_turns:
+                        print("Turn of player", player.player_no)
+                        if (player.player_no == 2):
+                            ai = AI(self.players, self.board.state)
+                            state_copy = self.board.state[:]
+                            print("Best v:", ai.alpha_beta_search(state_copy))
+                            print("")
+                        pick = self.player_input(player.player_no)
+                        s, switch_turns = player.move(self.board, pick)
+                        print('\n' * 2)
+>>>>>>> Stashed changes
                 else:
                     self.announce_winner()
                     game_over = True
@@ -296,10 +311,113 @@ class Kalaha():
                         if self.board.board[pick + 7] != 0:
                             break
                 print("Pick a proper slot")
-            except:
+            except ValueError:
                 print("Input a number you donut")
         return pick
 
+<<<<<<< Updated upstream
+=======
+    def start_against_ai(self):
+        '''
+        Starts the kalaha game. Ends when one player wins.
+        '''
+        ai = AI()
+        game_over = False
+        while not game_over:
+            ### player 1 turn
+            
+            if not self.board.game_over():
+                print("Turn of player", self.players[0].player_no)
+                pick = self.player_input(self.players[0].player_no)
+                self.players[0].move(self.board, pick)
+                print('\n' * 2)
+            else:
+                self.announce_winner()
+                break
+
+            ### player AI turn
+            pick = ai.find_best_move(self.board)
+            self.players[1].move(self.board, pick)
+
+
+
+class AI():
+    def __init__(self, players,state):
+        self.players = players
+        self.best_action = None
+        self.tree = Node(state[:], True)
+
+    
+    def alpha_beta_search(self, state): # the AI is maximizing
+        print("State",state)
+        v = self.max_value(state, -100, 100, 1)
+        return v
+
+    def max_value(self, state, alpha, beta, depth):
+        if (Board.game_over(state) or depth == 0):
+            return self.utility(state)
+        v = -100
+        print("possible actions max",Board.possible_actions(state, False))
+        
+        for action in Board.possible_actions(state, False)[:]:
+            print("action", action)
+            s, switch_turns = Board.result(state, action, self.players[1])
+            print("switch_turns:",switch_turns)
+            result_state = s[:]
+            if (switch_turns):
+                v = max(v, self.min_value(result_state, alpha, beta, depth-1))
+                if v >= beta:
+                    print("vbeta1:",v,"\n")
+                    return v
+                alpha = max(alpha, v)
+            else:
+                v = max(v, self.max_value(result_state, alpha, 100, depth))
+                if v <= alpha:
+                    print("vbeta2:",v,"\n")
+                    return v
+                beta = min(beta, v)
+        print("v:",v,"\n")
+        return v
+
+    def min_value(self, state, alpha, beta, depth):
+        if (Board.game_over(state) or depth==0):
+            return self.utility(state)
+        v = 100
+        for action in Board.possible_actions(state, True)[:]:
+            s, switch_turns = Board.result(state, action, self.players[0])
+            result_state = s[:]
+            if (switch_turns):
+                v = min(v, self.max_value(result_state, alpha, beta, depth-1))
+                if v <= alpha:
+                    return v
+                beta = min(beta, v)
+            else:
+                v = min(v, self.min_value(result_state, -100, beta, depth))
+                if v >= beta:
+                    return v
+                alpha = max(alpha, v)
+        return v
+
+
+
+    def utility(self, state):
+        return state[13]-state[6]
+
+class Node():
+    def __init__(self, state, maximizing_player):
+        self.children = []
+        self.action = None # How you got here
+        self.state = state
+        self.value = None
+        self.player = maximizing_player # player class
+        self.alpha = None
+        self.beta = None
+
+    # def expand(self):
+    #     for action in Board.possible_actions(state, player.player_no==1):
+
+
+>>>>>>> Stashed changes
 if __name__ == '__main__':
     kalaha = Kalaha()
     kalaha.start()
