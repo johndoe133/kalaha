@@ -323,7 +323,8 @@ class AI():
 
     
     def alpha_beta_search(self, state): # the AI is maximizing
-        v = self.max_value(state, -100, 100, 1)
+        depth = 1
+        v = self.max_value(state, -100, 100, depth)
         return v
 
     def max_value(self, state, alpha, beta, depth):
@@ -358,12 +359,12 @@ class AI():
             s, switch_turns = Board.result(state, action, self.players[0])
             result_state = s[:]
             if (switch_turns):
-                v = min(v, self.max_value(result_state, -100, beta, depth-1))
+                v = min(v, self.max_value(result_state, alpha, beta, depth-1))
                 if v <= alpha:
                     return v
                 beta = min(beta, v)
             else:
-                v = min(v, self.min_value(result_state, alpha, beta, depth))
+                v = min(v, self.min_value(result_state, -100, beta, depth))
                 if v >= beta:
                     return v
                 alpha = max(alpha, v)
