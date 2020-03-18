@@ -53,7 +53,8 @@ class Board:
             print(f'{i:^5}', end='')
         print("")
 
-    def result(self, state, action, player):
+    @staticmethod
+    def result(state, action, player):
         switch_turns = True
         if player.player_no == 1:
             # Pick up the beans
@@ -117,7 +118,8 @@ class Board:
             winner = 3  # draw
         return winner, score
 
-    def possible_actions(self, state, player1):
+    @staticmethod
+    def possible_actions(state, player1):
         """
         Finds the possible picks for player_no
         """
@@ -251,27 +253,7 @@ class Kalaha():
                     game_over = True
                     break
 
-    def start_against_ai(self):
-        '''
-        Starts the kalaha game. Ends when one player wins.
-        '''
-        ai = ai()
-        game_over = False
-        while not game_over:
-            ### player 1 turn
-            for player in self.players[0:1]:
-                if not self.board.game_over():
-                    print("Turn of player", player.player_no)
-                    pick = self.player_input(player.player_no)
-                    player.move(self.board, pick)
-                    print('\n' * 2)
-                else:
-                    self.announce_winner()
-                    break
-
-            ### player AI turn
-            pick = AI.find_best_move(self.board)
-            player[1].move(self.board, pick)
+    
 
         
 
@@ -304,6 +286,78 @@ class Kalaha():
             except:
                 print("Input a number you donut")
         return pick
+
+    def start_against_ai(self):
+        '''
+        Starts the kalaha game. Ends when one player wins.
+        '''
+        ai = AI()
+        game_over = False
+        while not game_over:
+            ### player 1 turn
+            
+            if not self.board.game_over():
+                print("Turn of player", self.players[0].player_no)
+                pick = self.player_input(self.players[0].player_no)
+                self.players[0].move(self.board, pick)
+                print('\n' * 2)
+            else:
+                self.announce_winner()
+                break
+
+            ### player AI turn
+            pick = ai.find_best_move(self.board)
+            self.players[1].move(self.board, pick)
+
+
+class AI():
+    def __init__(self, players):
+        self.players = players
+        self.best_action = None
+
+    
+    def alpha_beta_search(self, state): # the AI is maximizing
+        v = self.max_value(state, -100, 100, 5)
+        return v
+
+    def max_value(self, state, alpha, beta, depth):
+        if (Board.game_over(state) or depth == 0):
+            return utility(state)
+        v = -100
+        for action in Board.possible_actions(state, False):
+            v = max(v, self.min_value(Board.result(state, action, players[0]), alpha, beta, depth-1))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+        return v
+
+    def min_value(self, state, alpha, beta, depth):
+        if (Board.game_over(state) or depth==0):
+            return utility(state)
+        v = 100
+        for action in Board.possible_actions(state, True):
+            v = min(v, self.max_value(Board.result(state, action, players[1]), alpha, beta, depth-1))
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
+        return v
+
+
+
+    def utility(self, state):
+        return state[13]-state[6]
+    
+
+class Node():
+    def __init__(self):
+        self.children = []
+        self.action = None # How you got here
+        self.state = None
+        self.value = None
+        self.player = None # player class
+
+    def expand(self):
+        for action in 
 
 if __name__ == '__main__':
     kalaha = Kalaha()
