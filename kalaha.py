@@ -316,7 +316,6 @@ class Kalaha():
             self.players[1].move(self.board, pick)
 
 
-"""
 class AI():
     def __init__(self, players):
         self.players = players
@@ -343,7 +342,7 @@ class AI():
                     return v
                 alpha = max(alpha, v)
             else:
-                v = max(v, self.max_value(result_state, alpha, beta, depth))
+                v = max(v, self.max_value(result_state, alpha, 100, depth))
                 if v <= alpha:
                     print("v:",v,"\n")
                     return v
@@ -359,7 +358,7 @@ class AI():
             s, switch_turns = Board.result(state, action, self.players[0])
             result_state = s[:]
             if (switch_turns):
-                v = min(v, self.max_value(result_state, alpha, beta, depth-1))
+                v = min(v, self.max_value(result_state, -100, beta, depth-1))
                 if v <= alpha:
                     return v
                 beta = min(beta, v)
@@ -375,7 +374,7 @@ class AI():
     def utility(self, state):
         return state[13]-state[6]
     
-"""
+
 class Node():
     def __init__(self, state):
         self.children = []
@@ -386,7 +385,6 @@ class Node():
         self.alpha = None
         self.beta = None
 
-    def 
 
 if __name__ == '__main__':
     kalaha = Kalaha()
