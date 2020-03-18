@@ -55,6 +55,7 @@ class Board:
 
     @staticmethod
     def result(state, action, player):
+        state = state[:]
         switch_turns = True
         if player.player_no == 1:
             # Pick up the beans
@@ -133,7 +134,7 @@ class Board:
         
         for i in range(a,b):
             if (state[i] != 0):
-                moves += [i]
+                moves += [i-a]
         return moves
 
 class Player:
@@ -156,7 +157,7 @@ class Player:
         The pit the player has picked
         """
         state, switch_turns = board.result(board.state, pick, self)
-        board.board = state
+        board.state = state
         print("\n")
         board.print_board(0)
         print("\n")
@@ -245,6 +246,11 @@ class Kalaha():
                     switch_turns = False
                     while not switch_turns:
                         print("Turn of player", player.player_no)
+                        if (player.player_no == 2):
+                            ai = AI(self.players)
+                            state_copy = self.board.state[:]
+                            print("Best v:", ai.alpha_beta_search(state_copy))
+                            print("")
                         pick = self.player_input(player.player_no)
                         s, switch_turns = player.move(self.board, pick)
                         print('\n' * 2)
@@ -310,6 +316,7 @@ class Kalaha():
             self.players[1].move(self.board, pick)
 
 
+"""
 class AI():
     def __init__(self, players):
         self.players = players
@@ -317,29 +324,50 @@ class AI():
 
     
     def alpha_beta_search(self, state): # the AI is maximizing
-        v = self.max_value(state, -100, 100, 5)
+        v = self.max_value(state, -100, 100, 1)
         return v
 
     def max_value(self, state, alpha, beta, depth):
         if (Board.game_over(state) or depth == 0):
-            return utility(state)
+            return self.utility(state)
         v = -100
         for action in Board.possible_actions(state, False):
-            v = max(v, self.min_value(Board.result(state, action, players[0]), alpha, beta, depth-1))
-            if v >= beta:
-                return v
-            alpha = max(alpha, v)
+            print("action", action)
+            s, switch_turns = Board.result(state, action, self.players[1])
+            print("switch_turns:",switch_turns)
+            result_state = s[:]
+            if (switch_turns):
+                v = max(v, self.min_value(result_state, alpha, beta, depth-1))
+                if v >= beta:
+                    print("v:",v,"\n")
+                    return v
+                alpha = max(alpha, v)
+            else:
+                v = max(v, self.max_value(result_state, alpha, beta, depth))
+                if v <= alpha:
+                    print("v:",v,"\n")
+                    return v
+                beta = min(beta, v)
+        print("v:",v,"\n")
         return v
 
     def min_value(self, state, alpha, beta, depth):
         if (Board.game_over(state) or depth==0):
-            return utility(state)
+            return self.utility(state)
         v = 100
         for action in Board.possible_actions(state, True):
-            v = min(v, self.max_value(Board.result(state, action, players[1]), alpha, beta, depth-1))
-            if v <= alpha:
-                return v
-            beta = min(beta, v)
+            s, switch_turns = Board.result(state, action, self.players[0])
+            result_state = s[:]
+            if (switch_turns):
+                v = min(v, self.max_value(result_state, alpha, beta, depth-1))
+                if v <= alpha:
+                    return v
+                beta = min(beta, v)
+            else:
+                v = min(v, self.min_value(result_state, alpha, beta, depth))
+                if v >= beta:
+                    return v
+                alpha = max(alpha, v)
         return v
 
 
@@ -347,17 +375,20 @@ class AI():
     def utility(self, state):
         return state[13]-state[6]
     
-
+"""
 class Node():
-    def __init__(self):
+    def __init__(self, state):
         self.children = []
         self.action = None # How you got here
-        self.state = None
+        self.state = state
         self.value = None
         self.player = None # player class
+        self.alpha = None
+        self.beta = None
 
-    def expand(self):
-        for action in 
+    # def expand(self):
+    #     for action in Board.possible_actions(state, player.player_no==1):
+
 
 if __name__ == '__main__':
     kalaha = Kalaha()
