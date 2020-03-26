@@ -312,8 +312,8 @@ class Kalaha():
                             print("AI thinking...")                         
                             best_move = ai.alpha_beta_search(state_copy)
                             #time.sleep(2)
+                            print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
-                            print("AI picked",best_move)
                             #time.sleep(2)
                         else:
                             print("Turn of player", player.player_no)
@@ -386,7 +386,7 @@ class AI():
     def utility(self, state):
         return state[13]-state[6]
     
-    
+
 if __name__ == '__main__':
     kalaha = Kalaha()
     kalaha.play_against_ai()
