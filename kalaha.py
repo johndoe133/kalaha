@@ -270,7 +270,7 @@ class Kalaha():
 
 
 
-    def start_against_human(self):
+    def play_against_human(self):
         '''
         Starts the kalaha game. Ends when one player wins.
         '''
@@ -294,7 +294,7 @@ class Kalaha():
                     game_over = True
                     break
 
-    def start_against_ai(self):
+    def play_against_ai(self):
         '''
         Starts the kalaha game. Ends when one player wins.
         '''
@@ -311,10 +311,10 @@ class Kalaha():
                             state_copy = self.board.state[:]   
                             print("AI thinking...")                         
                             best_move = ai.alpha_beta_search(state_copy)
-                            time.sleep(2)
+                            #time.sleep(2)
                             s, switch_turns = player.move(self.board, best_move-1)
                             print("AI picked",best_move)
-                            time.sleep(2)
+                            #time.sleep(2)
                         else:
                             print("Turn of player", player.player_no)
                             pick = self.player_input(player.player_no)
@@ -331,9 +331,9 @@ class AI():
         self.action_score = dict()
 
     
-    def alpha_beta_search(self, state, previous_action = None): # the AI is maximizing
+    def alpha_beta_search(self, state): # the AI is maximizing
         self.action_score = dict()
-        depth = 5
+        depth = 7
         for action in Board.possible_actions(state, False):
             s, switch_turns = Board.result(state, action, self.players[1])
             result_state = s[:]
@@ -386,19 +386,8 @@ class AI():
     def utility(self, state):
         return state[13]-state[6]
     
-
-class Node():
-    def __init__(self, state):
-        self.children = []
-        self.action = None # How you got here
-        self.state = state
-        self.value = None
-        self.player = None # player class
-        self.alpha = None
-        self.beta = None
-
-
+    
 if __name__ == '__main__':
     kalaha = Kalaha()
-    kalaha.start_against_ai()
+    kalaha.play_against_ai()
 
