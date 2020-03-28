@@ -8,7 +8,7 @@ class Board:
     for i in range(7, 13):
         opposite_pit[i] = 12-i
     def __init__(self):
-        self.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
+        self.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0] # state of the initial board
         
 
     @staticmethod
@@ -58,6 +58,31 @@ class Board:
 
     @staticmethod
     def result(state, action, player):
+        '''
+        Static method. Returns the resulting board/state of making a move/action
+
+        Parameters
+        ----------
+        state: list
+        
+        a list representing a board state
+
+        action: int
+        
+        the number of the pit the player has chosen
+
+        player: int
+
+        Returns
+        ----------
+        state: list
+        
+        the resulting state of the action
+
+        switch_turns: bool
+        
+        true if it is still the same players turn
+        '''
         state = state[:]
         switch_turns = True
         if player.player_no == 1:
@@ -125,19 +150,19 @@ class Board:
     @staticmethod
     def possible_actions(state, player1):
         """
-        Finds the possible picks for player_no
+        Finds the possible picks/actions for player_no
         """
         moves = []
         #if player_no == 2
-        a=7
-        b=13
+        start_index=7
+        end_index=13
         if (player1):
-            a = 0
-            b=6
+            start_index = 0
+            end_index=6
         
-        for i in range(a,b):
+        for i in range(start_index,end_index):
             if (state[i] != 0):
-                moves += [i-a]
+                moves += [i - start_index]
         return moves
 
 class Player:
@@ -272,7 +297,7 @@ class Kalaha():
 
     def play_against_human(self):
         '''
-        Starts the kalaha game. Ends when one player wins.
+        Starts the kalaha game 1v1. Ends when one player wins.
         '''
         game_over = False
         while not game_over:
@@ -296,7 +321,7 @@ class Kalaha():
 
     def play_against_ai(self):
         '''
-        Starts the kalaha game. Ends when one player wins.
+        Starts the kalaha game vs AI. Ends when one player wins.
         '''
         ai = AI(self.players)
         game_over = False
@@ -331,19 +356,30 @@ class AI():
         self.action_score = dict()
 
     
-    def alpha_beta_search(self, state): # the AI is maximizing
-        self.action_score = dict()
-        depth = 1
+    def alpha_beta_search(self, state, d = 3): # the AI is maximizing
+        '''
+        The alpha beta pruning search algorithm for finding the best move
+
+        Parameters
+        ---------
+        state: list
+
+        d: int
+
+        the max depth of the algorithm
+
+        '''
+        self.action_score = dict() # dictionary of actions and corresponding score
+        depth = d
         actions = Board.possible_actions(state, False)
-        print(actions)
         if len(actions) == 1:
-            return actions[0] + 1
+            return actions[0] + 1 # if only one action is available AI picks it
         for action in actions:
             s, switch_turns = Board.result(state, action, self.players[1])
-            result_state = s[:]
+            result_state = s[:] # copy of resulting board state of making that action
             if switch_turns:
                 v = self.min_value(result_state,-100,100,depth-1)
-            else:
+            else: # if it is still the AI's turn it will keep maximizing
                 v = self.max_value(result_state,-100,100,depth)
             d = {action+1: v}
             self.action_score.update(d)      
