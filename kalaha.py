@@ -333,8 +333,12 @@ class AI():
     
     def alpha_beta_search(self, state): # the AI is maximizing
         self.action_score = dict()
-        depth = 7
-        for action in Board.possible_actions(state, False):
+        depth = 1
+        actions = Board.possible_actions(state, False)
+        print(actions)
+        if len(actions) == 1:
+            return actions[0] + 1
+        for action in actions:
             s, switch_turns = Board.result(state, action, self.players[1])
             result_state = s[:]
             if switch_turns:
@@ -343,7 +347,7 @@ class AI():
                 v = self.max_value(result_state,-100,100,depth)
             d = {action+1: v}
             self.action_score.update(d)      
-        return max(self.action_score.items(), key = operator.itemgetter(1))[0] # gets key/action with highest value
+        return max(self.action_score.items(), key = operator.itemgetter(1))[0] # gets key/action with highest value i.e. the best move
 
     def max_value(self, state, alpha, beta, depth):
         if (Board.game_over(state) or depth == 0):
