@@ -33,6 +33,7 @@ class Board:
         '''
         p1 = '     '
         p2 = '     '
+        l = "|"
         if player == 1:
             p1 = ' --> '
         elif player == 2:
@@ -41,19 +42,22 @@ class Board:
             raise Exception('Invalid player number')
         print(p2, end='')
         for i in range(6, 0, -1):
-            print(f'{i:^5}', end='')
+            print(" " + str(i) + "  " , end='')
         print('')
-        print("-"*40)
-        for i in range(1, 8):
-            print(f'{self.state[-i]:^5}', end='')
-        print('\n\n     ', end='')
-        for i in range(0, 7):
-            print(f'{self.state[i]:^5}', end='')
-        print('')
-        print("-"*40)
+        print("+" + "---+"*8)
+        print(l+" "*3+l,end="")
+        for i in range(2, 8):
+            print(f'{self.state[-i]:>2} {l:<1}', end='')
+        print('   |')
+        print(f"|{self.state[13]:^3}|" + "---+"*5 + f'---|{self.state[6]:^3}|')
+        print('|   |', end='')
+        for i in range(0, 6):
+            print(f'{self.state[i]:>2} {l:<1}', end='')
+        print('   |')
+        print("+" + "---+"*8)
         print(p1, end='')
         for i in range(1, 7):
-            print(f'{i:^5}', end='')
+            print(f'{i:^4}', end='')
         print("")
 
     @staticmethod
@@ -289,7 +293,7 @@ class Kalaha():
                         if self.board.state[pick + 7] != 0:
                             break
                 print("Pick a proper slot")
-            except:
+            except ValueError:
                 print("Input a number you donut")
         return pick
 
@@ -305,12 +309,12 @@ class Kalaha():
                 if not self.board.game_over(self.board.state):
                     switch_turns = False
                     while not switch_turns:
-                        print("Turn of player", player.player_no)
-                        if (player.player_no == 2):
-                            ai = AI(self.players)
-                            state_copy = self.board.state[:]
-                            print("Best action:", ai.alpha_beta_search(state_copy))
-                            print("")
+                        print("Turn of player", player.player_no,"\n")
+                        # if (player.player_no == 2):
+                        #     ai = AI(self.players)
+                        #     state_copy = self.board.state[:]
+                        #     print("Best action:", ai.alpha_beta_search(state_copy))
+                        #     print("")
                         pick = self.player_input(player.player_no)
                         s, switch_turns = player.move(self.board, pick)
                         print('\n' * 2)
@@ -341,7 +345,7 @@ class Kalaha():
                             s, switch_turns = player.move(self.board, best_move-1)
                             #time.sleep(2)
                         else:
-                            print("Turn of player", player.player_no)
+                            print("Turn of player", player.player_no,"\n")
                             pick = self.player_input(player.player_no)
                             s, switch_turns = player.move(self.board, pick)
                         print('\n' * 2)
