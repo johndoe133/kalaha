@@ -362,27 +362,29 @@ class Kalaha():
                             print("AI 1's turn")
                             state_copy = self.board.state[:]   
                             print("AI thinking...")                         
-                            best_move = ai1.alpha_beta_search(state_copy,player_no=0)
+                            best_move = ai1.alpha_beta_search(state_copy, maximizing_player = 0)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
                         else:
                             print("AI 2's turn")
                             state_copy = self.board.state[:]
                             print("AI thinking...")
-                            best_move = ai1.alpha_beta_search(state_copy,player_no=1)
+                            best_move = ai1.alpha_beta_search(state_copy, maximizing_player = 1)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
                 else:
                     self.announce_winner()
                     game_over = True
+                    return self.board.check_winner(self.board.state)
                     break
 
+
     def display_menu(self):
-        options = ["Play against AI", "Play against another player", "Exit"]
+        options = ["Play against AI", "Play against another player", "AI aginst AI", "Exit"]
         for i in range(len(options)):
             print(f"{i+1}. {options[i]}")
         choice = 0
-        while (choice not in [1,2,3]):
+        while (choice not in [1,2,3,4]):
             while True:
                 try:
                     choice = float(input("Enter a menu number: "))
@@ -394,11 +396,14 @@ class Kalaha():
 
 
 class AI():
-    def __init__(self, players):
+    def __init__(self, players, depth = 3):
         self.players = players
         self.action_score = dict()
+        self.maximizing_player = None
+        self.minimizing_player = None
+        self.depth = depth
    
-    def alpha_beta_search(self, state, d = 3, player_no = 1): # the AI is maximizing
+    def alpha_beta_search(self, state, maximizing_player = 1): # the AI is maximizing
         '''
         The alpha beta pruning search algorithm for finding the best move
 
@@ -406,87 +411,86 @@ class AI():
         ---------
         state: list
 
-        d: int
-
-        the max depth of the algorithm
 
         '''
         self.action_score = dict() # dictionary of actions and corresponding score
-        depth = d
+        self.maximizing_player = maximizing_player
+        self.minimizing_player = 0 if self.maximizing_player == 1 else 1
+        
         actions = Board.possible_actions(state, False)
         if len(actions) == 1:
             return actions[0] + 1 # if only one action is available AI picks it
         for action in actions:
-            s, switch_turns = Board.result(state, action, self.players[player_no])
+            s, switch_turns = Board.result(state, action, self.players[self.maximizing_player])
             result_state = s[:] # copy of resulting board state of making that action
             if switch_turns:
-                v = self.min_value(result_state,-100,100,depth-1, player_no)
+                v = self.min_value(result_state,-100,100,depth-1)
             else: # if it is still the AI's turn it will keep maximizing
-                v = self.max_value(result_state,-100,100,depth, player_no)
+                v = self.max_value(result_state,-100,100,depth)
             d = {action+1: v}
             self.action_score.update(d)
-        print(self.action_score)   
-        return self.pick_best_move(player_no)   
-        #return max(self.action_score.items(), key = operator.itemgetter(1))[0] # gets key/action with highest value i.e. the best move
+        return self.pick_best_move()   
+        #return max(self.action_score.items(), key = operator.itemgetter(1))[0] 
 
-    def pick_best_move(self,player_no):
+    def max_value(self, state, alpha, beta, depth):
+        if (Board.game_over(state) or depth == 0):
+            return self.utility(state)
+        v = -100
+        for action in Board.possible_actions(state, False):
+            s, switch_turns = Board.result(state, action, self.players[self.maximizing_player])
+            result_state = s[:]
+            if (switch_turns):
+                v = max(v, self.min_value(result_state, alpha, beta, depth-1))
+                if v >= beta:
+                    return v
+                alpha = max(alpha, v)
+            else:
+                v = max(v, self.max_value(result_state, alpha, 100, depth))
+                if v <= alpha:
+                    return v
+                beta = min(beta, v)
+        return v
+
+    def min_value(self, state, alpha, beta, depth):
+        if (Board.game_over(state) or depth==0):
+            return self.utility(state)
+        v = 100
+        for action in Board.possible_actions(state, True):
+            s, switch_turns = Board.result(state, action, self.players[self.minimizing_player])
+            result_state = s[:]
+            if (switch_turns):
+                v = min(v, self.max_value(result_state, -100, beta, depth-1))
+                if v <= alpha:
+                    return v
+                beta = min(beta, v)
+            else:
+                v = min(v, self.min_value(result_state, alpha, beta, depth))
+                if v >= beta:
+                    return v
+                alpha = max(alpha, v)
+        return v
+
+    def utility(self, state):
+        if self.maximizing_player == 1:
+            return state[13]-state[6]
+        elif self.maximizing_player == 0: 
+            return state[6]-state[13]
+
+    def pick_best_move(self):
         '''
         Picking the best move based on the alpha beta search. If there are two moves that are equally good
         the AI will randomly choose one of them. 
         '''
-        max_score_index = max(self.action_score.items(), key = operator.itemgetter(1))[0]
+        max_score_index = max(self.action_score.items(), key = operator.itemgetter(1))[0] # gets key/action with highest value i.e. the best move
         max_score = self.action_score[max_score_index]
         no_of_max_scores = 0 
-        for key in self.action_score.keys():
+        for key in self.action_score.keys(): # as there might be more moves that result in the max_score we find those
             if self.action_score[key] == max_score:
                 no_of_max_scores += 1
         choices = nlargest(no_of_max_scores, self.action_score, key = self.action_score.get)
+        print(self.action_score)
+        print(choices)
         return random.choice(choices)
-
-
-    def max_value(self, state, alpha, beta, depth, player_no):
-        if (Board.game_over(state) or depth == 0):
-            return self.utility(state, player_no)
-        v = -100
-        for action in Board.possible_actions(state, False):
-            s, switch_turns = Board.result(state, action, self.players[player_no])
-            result_state = s[:]
-            if (switch_turns):
-                v = max(v, self.min_value(result_state, alpha, beta, depth-1, player_no))
-                if v >= beta:
-                    return v
-                alpha = max(alpha, v)
-            else:
-                v = max(v, self.max_value(result_state, alpha, 100, depth, player_no))
-                if v <= alpha:
-                    return v
-                beta = min(beta, v)
-        return v
-
-    def min_value(self, state, alpha, beta, depth, player_no):
-        if (Board.game_over(state) or depth==0):
-            return self.utility(state, player_no)
-        v = 100
-        for action in Board.possible_actions(state, True):
-            s, switch_turns = Board.result(state, action, self.players[player_no])
-            result_state = s[:]
-            if (switch_turns):
-                v = min(v, self.max_value(result_state, -100, beta, depth-1, player_no))
-                if v <= alpha:
-                    return v
-                beta = min(beta, v)
-            else:
-                v = min(v, self.min_value(result_state, alpha, beta, depth, player_no))
-                if v >= beta:
-                    return v
-                alpha = max(alpha, v)
-        return v
-
-    def utility(self, state, player_no):
-        if player_no == 1:
-            return state[13]-state[6]
-        else: 
-            return state[6]-state[13]
 
 if __name__ == '__main__':
     kalaha = Kalaha()
@@ -500,5 +504,7 @@ if __name__ == '__main__':
         kalaha.play_against_human()
     elif choice == 3:
         kalaha.ai_against_ai()
+    elif choice == 4:
+        print("Goodbye")
         
 
