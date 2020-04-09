@@ -249,7 +249,7 @@ class Player:
 class Kalaha():
     def __init__(self):
         self.board = Board()
-        self.players = [Player(2),Player(1)]
+        self.players = [Player(1),Player(2)]
         self.player_1 = Player(1)
         self.player_2 = Player(2)
 
@@ -334,7 +334,9 @@ class Kalaha():
                         if (player.player_no == 2):
                             print("AI's turn")
                             state_copy = self.board.state[:]   
-                            print("AI thinking...")                         
+                            print("AI thinking...")     
+                            print("state",state_copy)   
+                            print(ai.alpha_beta_search(state_copy))                 
                             best_move = ai.alpha_beta_search(state_copy)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
@@ -348,32 +350,30 @@ class Kalaha():
                     game_over = True
                     break
 
-    def ai_against_ai(self, ai1_depth, ai2_depth):
+    def ai_against_ai(self, depth_p1, depth_p2):
         
-        ai1 = AI(self.players, depth = 3)
-        ai2 = AI(self.players, depth = 3)
+        ai = AI(self.players)
+
         
         game_over = False
         while not game_over:
             for player in self.players:
                 if not self.board.game_over(self.board.state):
                     switch_turns = False
-                    while not switch_turns:########
+                    while not switch_turns:
                         if player.player_no == 1:
                             print("AI 1's turn")
                             state_copy = self.board.state[:]   
                             print("AI thinking...")                         
-                            best_move = ai1.alpha_beta_search(state_copy, maximizing_player = 0)
+                            best_move = ai.alpha_beta_search(state_copy, maximizing_player = 0, depth=depth_p1)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
-                        elif player.player_no == 2:########################
+                        else:
                             print("AI 2's turn")
                             state_copy = self.board.state[:]
                             print("AI thinking...")
-                            print("state copy",state_copy)
-                            print("d",ai2_depth)
-                            ai2.alpha_beta_search(state_copy, maximizing_player = 1)
-                            best_move = ai2.alpha_beta_search(state_copy, maximizing_player = 1)
+                            ai.alpha_beta_search(state_copy, maximizing_player = 1)
+                            best_move = ai.alpha_beta_search(state_copy, maximizing_player = 1, depth = depth_p2)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
                 else:
@@ -400,14 +400,13 @@ class Kalaha():
 
 
 class AI():
-    def __init__(self, players, depth = 3):
+    def __init__(self, players):
         self.players = players
         self.action_score = dict()
         self.maximizing_player = None
         self.minimizing_player = None
-        self.depth = depth
    
-    def alpha_beta_search(self, state, maximizing_player = 1): # the AI is maximizing
+    def alpha_beta_search(self, state, maximizing_player = 1, depth = 3): # the AI is maximizing
         '''
         The alpha beta pruning search algorithm for finding the best move
 
@@ -420,8 +419,8 @@ class AI():
         
         self.maximizing_player = maximizing_player
         self.minimizing_player = 0 if self.maximizing_player == 1 else 1
-        depth = self.depth
-
+        #depth = self.depth
+        print(depth)
         actions = Board.possible_actions(state, True if self.maximizing_player == 0 else False)
         if len(actions) == 1:
             return actions[0] + 1 # if only one action is available AI picks it
