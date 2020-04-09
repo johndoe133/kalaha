@@ -1,17 +1,22 @@
-class Board:
-    def __init__(self):
-        self.board = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
-        self.opposite_pit = dict()
-        for i in range(6):
-            self.opposite_pit[i] = 12-i
-        for i in range(7, 13):
-            self.opposite_pit[i] = 12-i
+import operator
+import time
 
-    def game_over(self):
+class Board:
+    opposite_pit = dict()
+    for i in range(6):
+        opposite_pit[i] = 12-i
+    for i in range(7, 13):
+        opposite_pit[i] = 12-i
+    def __init__(self):
+        self.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0] # state of the initial board
+        
+
+    @staticmethod
+    def game_over(state):
         '''
         Checks if the game is over
         '''
-        if (sum(self.board[0:6]) == 0 or (sum(self.board[7:13]) == 0)):
+        if (sum(state[0:6]) == 0 or (sum(state[7:13]) == 0)):
             return True
         else:
             return False
@@ -40,10 +45,10 @@ class Board:
         print('')
         print("-"*40)
         for i in range(1, 8):
-            print(f'{self.board[-i]:^5}', end='')
+            print(f'{self.state[-i]:^5}', end='')
         print('\n\n     ', end='')
         for i in range(0, 7):
-            print(f'{self.board[i]:^5}', end='')
+            print(f'{self.state[i]:^5}', end='')
         print('')
         print("-"*40)
         print(p1, end='')
@@ -51,7 +56,74 @@ class Board:
             print(f'{i:^5}', end='')
         print("")
 
-    def check_winner(self):
+    @staticmethod
+    def result(state, action, player):
+        '''
+        Static method. Returns the resulting board/state of making a move/action
+
+        Parameters
+        ----------
+        state: list
+        
+        a list representing a board state
+
+        action: int
+        
+        the number of the pit the player has chosen
+
+        player: int
+
+        Returns
+        ----------
+        state: list
+        
+        the resulting state of the action
+
+        switch_turns: bool
+        
+        true if it is still the same players turn
+        '''
+        state = state[:]
+        switch_turns = True
+        if player.player_no == 1:
+            # Pick up the beans
+            beans = state[action]
+            state[action] = 0
+            pit_no = action
+            # Distribute them
+            while beans > 0:
+                pit_no = (pit_no + 1) % 13
+                # doesn't get into player 2s kalaha
+                state[pit_no] += 1
+                beans -= 1
+            # if you land in your own empty 'thing' you get that into the kalaha
+            # plus the pieces directly opposite
+            if player.can_capture(state, pit_no):
+                player.capture(state, pit_no)
+        else:
+            action = action + 7
+            beans = state[action]
+            state[action] = 0
+            pit_no = action
+            while beans > 0:
+                pit_no = (pit_no + 1) % 14
+                if pit_no == 6:
+                    pit_no += 1  # skip player 1s kalaha
+                state[pit_no] += 1
+                beans -= 1
+            if player.can_capture(state, pit_no):
+                player.capture(state, pit_no)
+
+        if (not Board.game_over(state)):
+            if player.player_no == 1:
+                if pit_no == 6:
+                    switch_turns = False
+            else:
+                if pit_no == 13:
+                    switch_turns = False
+        return state, switch_turns
+
+    def check_winner(self, state):
         '''
         Checks who the winner is
 
@@ -63,8 +135,8 @@ class Board:
         If `winner==3` then it was a draw
 
         '''
-        player_1_score = sum(self.board[0:7])
-        player_2_score = sum(self.board[7:14])
+        player_1_score = sum(state[0:7])
+        player_2_score = sum(state[7:14])
         score = player_1_score
         if player_1_score > player_2_score:
             winner = 1
@@ -75,27 +147,28 @@ class Board:
             winner = 3  # draw
         return winner, score
 
-    def possible_moves(self, player1):
+    @staticmethod
+    def possible_actions(state, player1):
         """
-        Finds the possible picks for player_no
+        Finds the possible picks/actions for player_no
         """
         moves = []
         #if player_no == 2
-        a=7
-        b=13
+        start_index=7
+        end_index=13
         if (player1):
-            a = 0
-            b=6
+            start_index = 0
+            end_index=6
         
-        for i in range(a,b):
-            if (self.board[i] != 0):
-                moves += [i]
+        for i in range(start_index,end_index):
+            if (state[i] != 0):
+                moves += [i - start_index]
         return moves
 
 class Player:
     def __init__(self, player_no):
         self.player_no = player_no
-        self.score = 0
+        self.score = 0        
 
     def move(self, board, pick):
         """
@@ -111,54 +184,15 @@ class Player:
         
         The pit the player has picked
         """
-        if self.player_no == 1:
-            # Pick up the beans
-            beans = board.board[pick]
-            board.board[pick] = 0
-            pit_no = pick
-            # Distribute them
-            while beans > 0:
-                pit_no = (pit_no + 1) % 13
-                # doesnt get into player 2s kalaha
-                board.board[pit_no] += 1
-                beans -= 1
-            # if you land in your own empty 'thing' you get that into the kalaha
-            # plus the pieces directly opposite
-            if self.can_capture(board, pit_no):
-                self.capture(board, pit_no)
-        else:
-            pick = pick + 7
-            beans = board.board[pick]
-            board.board[pick] = 0
-            pit_no = pick
-            while beans > 0:
-                pit_no = (pit_no + 1) % 14
-                if pit_no == 6:
-                    pit_no += 1  # skip player 1s kalaha
-                board.board[pit_no] += 1
-                beans -= 1
-            if self.can_capture(board, pit_no):
-                self.capture(board, pit_no)
+        state, switch_turns = board.result(board.state, pick, self)
+        board.state = state
         print("\n")
         board.print_board(0)
         print("\n")
-        return board
-
-        
-
-        # if it ends in kalaha
-        if (not board.game_over()):
-            if self.player_no == 1:
-                if pit_no == 6:
-                    pick = kalaha.player_input(1)
-                    self.move(board, pick)
-            else:
-                if pit_no == 13:
-                    pick = kalaha.player_input(2)
-                    self.move(board, pick)
+        return state, switch_turns
 
     
-    def can_capture(self, board, last_pit):
+    def can_capture(self, state, last_pit):
         """Checks if the player can capture the beans on the opposite side
 
         This assumes that you have just placed your last bean in the pit you
@@ -173,13 +207,13 @@ class Player:
         last_pit : int
             the last pit a bean is being placed in
         """
-        if (board.board[last_pit] == 1 and (last_pit not in [6, 13])):
+        if (state[last_pit] == 1 and (last_pit not in [6, 13])):
             if self.player_no == 1 and last_pit in range(0, 6) or (self.player_no == 2 and last_pit in range(7, 13)):
                 return True
         else:
             return False
 
-    def capture(self, board, pit_no):
+    def capture(self, state, pit_no):
         """
         Captures the player's last piece placed, as well as the pieces opposite
 
@@ -196,20 +230,20 @@ class Player:
         The pit the player is placing their last bean in
         """
         if self.player_no == 1:
-            board.board[pit_no] = 0
-            board.board[6] += 1
-            opposite_pitIndex = board.opposite_pit[pit_no]
-            opposite_pit = board.board[opposite_pitIndex]
-            board.board[opposite_pitIndex] = 0
-            board.board[6] += opposite_pit
+            state[pit_no] = 0
+            state[6] += 1
+            opposite_pitIndex = Board.opposite_pit[pit_no]
+            opposite_pit = state[opposite_pitIndex]
+            state[opposite_pitIndex] = 0
+            state[6] += opposite_pit
 
         elif self.player_no == 2:
-            board.board[pit_no] = 0
-            board.board[13] += 1
-            opposite_pitIndex = board.opposite_pit[pit_no]
-            opposite_pit = board.board[opposite_pitIndex]
-            board.board[opposite_pitIndex] = 0
-            board.board[13] += opposite_pit
+            state[pit_no] = 0
+            state[13] += 1
+            opposite_pitIndex = Board.opposite_pit[pit_no]
+            opposite_pit = state[opposite_pitIndex]
+            state[opposite_pitIndex] = 0
+            state[13] += opposite_pit
 
 class Kalaha():
     def __init__(self):
@@ -219,7 +253,7 @@ class Kalaha():
         self.player_2 = Player(2)
 
     def announce_winner(self):
-        winner, score = self.board.check_winner()
+        winner, score = self.board.check_winner(self.board.state)
         print("GAME OVER!")
         if winner == 3:
             print("The game was a draw")
@@ -227,47 +261,6 @@ class Kalaha():
         else:
             print("The winner is Player", winner, " with score", score)
             self.board.print_board(winner)
-
-
-    def start(self):
-        '''
-        Starts the kalaha game. Ends when one player wins.
-        '''
-        game_over = False
-        while not game_over:
-            for player in self.players:
-                if not self.board.game_over():
-                    print("Turn of player", player.player_no)
-                    pick = self.player_input(player.player_no)
-                    player.move(self.board, pick)
-                    print('\n' * 2)
-                else:
-                    self.announce_winner()
-                    game_over = True
-                    break
-
-    def start_against_ai(self):
-        '''
-        Starts the kalaha game. Ends when one player wins.
-        '''
-        ai = ai()
-        game_over = False
-        while not game_over:
-            ### player 1 turn
-            for player in self.players[0:1]:
-                if not self.board.game_over():
-                    print("Turn of player", player.player_no)
-                    pick = self.player_input(player.player_no)
-                    player.move(self.board, pick)
-                    print('\n' * 2)
-                else:
-                    self.announce_winner()
-                    break
-
-            ### player AI turn
-            pick = AI.find_best_move(self.board)
-            player[1].move(self.board, pick)
-
         
 
     def player_input(self, player):
@@ -290,17 +283,179 @@ class Kalaha():
                 pick = pick - 1
                 if pick in [0, 1, 2, 3, 4, 5]:
                     if player == 1:
-                        if self.board.board[pick] != 0:
+                        if self.board.state[pick] != 0:
                             break
                     elif player == 2:
-                        if self.board.board[pick + 7] != 0:
+                        if self.board.state[pick + 7] != 0:
                             break
                 print("Pick a proper slot")
             except:
                 print("Input a number you donut")
         return pick
 
+
+
+    def play_against_human(self):
+        '''
+        Starts the kalaha game 1v1. Ends when one player wins.
+        '''
+        game_over = False
+        while not game_over:
+            for player in self.players:
+                if not self.board.game_over(self.board.state):
+                    switch_turns = False
+                    while not switch_turns:
+                        print("Turn of player", player.player_no)
+                        if (player.player_no == 2):
+                            ai = AI(self.players)
+                            state_copy = self.board.state[:]
+                            print("Best action:", ai.alpha_beta_search(state_copy))
+                            print("")
+                        pick = self.player_input(player.player_no)
+                        s, switch_turns = player.move(self.board, pick)
+                        print('\n' * 2)
+                else:
+                    self.announce_winner()
+                    game_over = True
+                    break
+
+    def play_against_ai(self):
+        '''
+        Starts the kalaha game vs AI. Ends when one player wins.
+        '''
+        ai = AI(self.players)
+        game_over = False
+        while not game_over:
+            for player in self.players:
+                if not self.board.game_over(self.board.state):
+                    switch_turns = False
+                    while not switch_turns:
+                        
+                        if (player.player_no == 2):
+                            print("AI's turn")
+                            state_copy = self.board.state[:]   
+                            print("AI thinking...")                         
+                            best_move = ai.alpha_beta_search(state_copy)
+                            #time.sleep(2)
+                            print("AI picks",best_move)
+                            s, switch_turns = player.move(self.board, best_move-1)
+                            #time.sleep(2)
+                        else:
+                            print("Turn of player", player.player_no)
+                            pick = self.player_input(player.player_no)
+                            s, switch_turns = player.move(self.board, pick)
+                        print('\n' * 2)
+                else:
+                    self.announce_winner()
+                    game_over = True
+                    break
+
+    
+    def display_menu(self):
+        options = ["Play against AI", "Play against another player", "Exit"]
+        for i in range(len(options)):
+            print(f"{i+1}. {options[i]}")
+        choice = 0
+        while (choice not in [1,2,3]):
+            while True:
+                try:
+                    choice = float(input("Enter a menu number: "))
+                    break
+                except ValueError:
+                    print("Please enter a valid number: ")
+        
+        return choice
+
+
+
+class AI():
+    def __init__(self, players):
+        self.players = players
+        self.action_score = dict()
+
+    
+    def alpha_beta_search(self, state, d = 3): # the AI is maximizing
+        '''
+        The alpha beta pruning search algorithm for finding the best move
+
+        Parameters
+        ---------
+        state: list
+
+        d: int
+
+        the max depth of the algorithm
+
+        '''
+        self.action_score = dict() # dictionary of actions and corresponding score
+        depth = d
+        actions = Board.possible_actions(state, False)
+        if len(actions) == 1:
+            return actions[0] + 1 # if only one action is available AI picks it
+        for action in actions:
+            s, switch_turns = Board.result(state, action, self.players[1])
+            result_state = s[:] # copy of resulting board state of making that action
+            if switch_turns:
+                v = self.min_value(result_state,-100,100,depth-1)
+            else: # if it is still the AI's turn it will keep maximizing
+                v = self.max_value(result_state,-100,100,depth)
+            d = {action+1: v}
+            self.action_score.update(d)      
+        return max(self.action_score.items(), key = operator.itemgetter(1))[0] # gets key/action with highest value i.e. the best move
+
+    def max_value(self, state, alpha, beta, depth):
+        if (Board.game_over(state) or depth == 0):
+            return self.utility(state)
+        v = -100
+        for action in Board.possible_actions(state, False):
+            s, switch_turns = Board.result(state, action, self.players[1])
+            result_state = s[:]
+            if (switch_turns):
+                v = max(v, self.min_value(result_state, alpha, beta, depth-1))
+                if v >= beta:
+                    return v
+                alpha = max(alpha, v)
+            else:
+                v = max(v, self.max_value(result_state, alpha, 100, depth))
+                if v <= alpha:
+                    return v
+                beta = min(beta, v)
+        return v
+
+    def min_value(self, state, alpha, beta, depth):
+        if (Board.game_over(state) or depth==0):
+            return self.utility(state)
+        v = 100
+        for action in Board.possible_actions(state, True):
+            s, switch_turns = Board.result(state, action, self.players[0])
+            result_state = s[:]
+            if (switch_turns):
+                v = min(v, self.max_value(result_state, -100, beta, depth-1))
+                if v <= alpha:
+                    return v
+                beta = min(beta, v)
+            else:
+                v = min(v, self.min_value(result_state, alpha, beta, depth))
+                if v >= beta:
+                    return v
+                alpha = max(alpha, v)
+        return v
+
+    def utility(self, state):
+        return state[13]-state[6]
+    
+
 if __name__ == '__main__':
     kalaha = Kalaha()
-    kalaha.start()
+    print('\n' * 100)
+    choice = kalaha.display_menu()
+    if choice == 1:
+        print('\n' * 100)
+        kalaha.play_against_ai()
+    elif choice == 2:
+        print('\n' * 100)
+        kalaha.play_against_human()
+    elif choice == 3:
+        print("Goodbye")
+        
 
