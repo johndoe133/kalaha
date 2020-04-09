@@ -73,7 +73,7 @@ class Board:
         
         the number of the pit the player has chosen
 
-        player: int
+        player: Player
 
         Returns
         ----------
@@ -249,7 +249,7 @@ class Player:
 class Kalaha():
     def __init__(self):
         self.board = Board()
-        self.players = [Player(1),Player(2)]
+        self.players = [Player(2),Player(1)]
         self.player_1 = Player(1)
         self.player_2 = Player(2)
 
@@ -350,8 +350,8 @@ class Kalaha():
 
     def ai_against_ai(self, ai1_depth, ai2_depth):
         
-        ai1 = AI(self.players, depth = ai1_depth)
-        ai2 = AI(self.players, depth = ai2_depth)
+        ai1 = AI(self.players, depth = 3)
+        ai2 = AI(self.players, depth = 3)
         
         game_over = False
         while not game_over:
@@ -366,10 +366,13 @@ class Kalaha():
                             best_move = ai1.alpha_beta_search(state_copy, maximizing_player = 0)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
-                        else:########################
+                        elif player.player_no == 2:########################
                             print("AI 2's turn")
                             state_copy = self.board.state[:]
                             print("AI thinking...")
+                            print("state copy",state_copy)
+                            print("d",ai2_depth)
+                            ai2.alpha_beta_search(state_copy, maximizing_player = 1)
                             best_move = ai2.alpha_beta_search(state_copy, maximizing_player = 1)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
@@ -417,7 +420,6 @@ class AI():
         
         self.maximizing_player = maximizing_player
         self.minimizing_player = 0 if self.maximizing_player == 1 else 1
-        
         depth = self.depth
 
         actions = Board.possible_actions(state, True if self.maximizing_player == 0 else False)
@@ -473,8 +475,6 @@ class AI():
         return v
 
     def utility(self, state):
-        print(self.maximizing_player)
-        print(state)
         if self.maximizing_player == 0: 
             return state[6] - state[13]
         elif self.maximizing_player == 1:
