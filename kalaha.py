@@ -187,9 +187,11 @@ class Player:
         """
         state, switch_turns = board.result(board.state, pick, self)
         board.state = state
-        print("\n")
-        board.print_board(0)
-        print("\n")
+        
+        if __name__ == '__main__': # so it doesnt print in simulations
+            print("\n")
+            board.print_board(0)
+            print("\n")
         return state, switch_turns
 
     
@@ -252,6 +254,9 @@ class Kalaha():
         self.players = [Player(1),Player(2)]
         self.player_1 = Player(1)
         self.player_2 = Player(2)
+
+    def reset_board(self):
+        self.board.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
 
     def announce_winner(self):
         winner, score = self.board.check_winner(self.board.state)
@@ -362,22 +367,22 @@ class Kalaha():
                     switch_turns = False
                     while not switch_turns:
                         if player.player_no == 1:
-                            print("AI 1's turn")
+                            #print("AI 1's turn")
                             state_copy = self.board.state[:]   
-                            print("AI thinking...")                         
+                            #print("AI thinking...")                         
                             best_move = ai.alpha_beta_search(state_copy, maximizing_player = 0, depth=depth_p1)
-                            print("AI picks",best_move)
+                            #print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
                         else:
-                            print("AI 2's turn")
+                            #print("AI 2's turn")
                             state_copy = self.board.state[:]
-                            print("AI thinking...")
-                            ai.alpha_beta_search(state_copy, maximizing_player = 1)
+                            #print("AI thinking...")
                             best_move = ai.alpha_beta_search(state_copy, maximizing_player = 1, depth = depth_p2)
-                            print("AI picks",best_move)
+                            #print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
                 else:
-                    self.announce_winner()
+                    if __name__ == '__main__': # so it does not show in simulations
+                        self.announce_winner()
                     game_over = True
                     return self.board.check_winner(self.board.state)
                     break
@@ -419,8 +424,6 @@ class AI():
         
         self.maximizing_player = maximizing_player
         self.minimizing_player = 0 if self.maximizing_player == 1 else 1
-        #depth = self.depth
-        print(depth)
         actions = Board.possible_actions(state, True if self.maximizing_player == 0 else False)
         if len(actions) == 1:
             return actions[0] + 1 # if only one action is available AI picks it
@@ -492,8 +495,6 @@ class AI():
             if self.action_score[key] == max_score:
                 no_of_max_scores += 1
         choices = nlargest(no_of_max_scores, self.action_score, key = self.action_score.get)
-        print(self.action_score)
-        print(choices)
         return random.choice(choices)
 
 if __name__ == '__main__':
@@ -507,6 +508,6 @@ if __name__ == '__main__':
         print('\n' * 100)
         kalaha.play_against_human()
     elif choice == 3:
-        kalaha.ai_against_ai(3,3)
+        kalaha.ai_against_ai(1,1)
         
 
