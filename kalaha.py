@@ -343,8 +343,7 @@ class Kalaha():
                         if (player.player_no == 2):
                             print("AI's turn")
                             state_copy = self.board.state[:]   
-                            print("AI thinking...")     
-                            print(ai.alpha_beta_search(state_copy))                 
+                            print("AI thinking...")       
                             best_move = ai.alpha_beta_search(state_copy, depth = d)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
