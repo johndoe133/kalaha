@@ -102,11 +102,11 @@ class Board:
                 # doesn't get into player 2s kalaha
                 state[pit_no] += 1
                 beans -= 1
-            # if you land in your own empty 'thing' you get that into the kalaha
+            # if you land in your own empty pit you get that into the kalaha
             # plus the pieces directly opposite
             if player.can_capture(state, pit_no):
                 player.capture(state, pit_no)
-        else:
+        else: # player 2
             action = action + 7
             beans = state[action]
             state[action] = 0
@@ -132,6 +132,12 @@ class Board:
     def check_winner(self, state):
         '''
         Checks who the winner is
+        
+        Parameters
+        ----------
+        state: list
+        
+        a list representing a board state
 
         Returns
         -------
@@ -157,6 +163,20 @@ class Board:
     def possible_actions(state, player1):
         """
         Finds the possible picks/actions for player.
+
+        Parameters
+        ----------
+        `state`: list
+
+        `player1`: bool
+
+        True if the player is player 1
+
+        Returns
+        --------
+        `moves`: list
+
+        A list of `moves` the player can make in the given `state`
         """
         moves = []
         start_index=7
@@ -181,11 +201,11 @@ class Player:
 
         Parameters
         ----------
-        board : Board 
+        `board` : Board 
 
-        The board the player is currently playing on
+        The `board` the player is currently playing on
 
-        pick : int
+        `pick`: int
         
         The pit the player has picked
         """
@@ -228,11 +248,11 @@ class Player:
 
         Parameters
         ----------
-        board : Board
+        `board` : Board
 
         The board the player is currently using
 
-        pit_no : int
+        `pit_no` : int
 
         The pit the player is placing their last bean in
         """
@@ -256,8 +276,6 @@ class Kalaha():
     def __init__(self):
         self.board = Board()
         self.players = [Player(1),Player(2)]
-        self.player_1 = Player(1)
-        self.player_2 = Player(2)
 
     def reset_board(self):
         self.board.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
@@ -275,15 +293,16 @@ class Kalaha():
 
     def player_input(self, player):
         '''
-        Gets a 'pit' picked by a player. 
+        Gets a pit picked by a player. 
         Parameters
         ----------
         player : int
-                 Player number. Must be 1 or 2.
+                 
+        Player number. Must be 1 or 2.
         
         Returns
         -------
-        The 'hole' number picked by the player.
+        The pit number picked by the player.
         '''
         self.board.print_board(player)
 
@@ -316,11 +335,6 @@ class Kalaha():
                     switch_turns = False
                     while not switch_turns:
                         print("Turn of player", player.player_no,"\n")
-                        # if (player.player_no == 2):
-                        #     ai = AI(self.players)
-                        #     state_copy = self.board.state[:]
-                        #     print("Best action:", ai.alpha_beta_search(state_copy))
-                        #     print("")
                         pick = self.player_input(player.player_no)
                         s, switch_turns = player.move(self.board, pick)
                         print('\n' * 2)
@@ -329,22 +343,24 @@ class Kalaha():
                     game_over = True
                     break
 
-    def play_against_ai(self, d):
+    def play_against_ai(self, d, AI_player = 2):
         '''
         Starts the kalaha game vs AI. Ends when one player wins.
+        By default AI is player 2. 
         '''
         ai = AI(self.players)
+        
         game_over = False
         while not game_over:
             for player in self.players:
                 if not self.board.game_over(self.board.state):
                     switch_turns = False
                     while not switch_turns:
-                        if (player.player_no == 2):
+                        if (player.player_no == AI_player): 
                             print("AI's turn")
                             state_copy = self.board.state[:]   
                             print("AI thinking...")       
-                            best_move = ai.alpha_beta_search(state_copy, depth = d)
+                            best_move = ai.alpha_beta_search(state_copy, depth = d, maximizing_player = 1 if AI_player == 2 else 0)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
                         else:
@@ -358,7 +374,9 @@ class Kalaha():
                     break
 
     def ai_against_ai(self, depth_p1, depth_p2):
-        
+        '''
+        Mainly used for simulation
+        '''
         ai = AI(self.players)
 
         game_over = False
@@ -367,20 +385,12 @@ class Kalaha():
                 if not self.board.game_over(self.board.state):
                     switch_turns = False
                     while not switch_turns:
-                        if player.player_no == 1:
-                            #print("AI 1's turn")
-                            state_copy = self.board.state[:]   
-                            #print("AI thinking...")                         
+                        state_copy = self.board.state[:] 
+                        if player.player_no == 1:                
                             best_move = ai.alpha_beta_search(state_copy, maximizing_player = 0, depth=depth_p1)
-                            #print("AI picks",best_move)
-                            s, switch_turns = player.move(self.board, best_move-1)
                         else:
-                            #print("AI 2's turn")
-                            state_copy = self.board.state[:]
-                            #print("AI thinking...")
                             best_move = ai.alpha_beta_search(state_copy, maximizing_player = 1, depth = depth_p2)
-                            #print("AI picks",best_move)
-                            s, switch_turns = player.move(self.board, best_move-1)
+                        s, switch_turns = player.move(self.board, best_move-1)
                 else:
                     if __name__ == '__main__': # so it does not show in simulations
                         self.announce_winner()
@@ -388,7 +398,7 @@ class Kalaha():
                     return self.board.check_winner(self.board.state)
                     break
 
-
+    # menues
     def display_menu(self):
         options = ["Play against AI", "Play against another player", "Exit"]
         for i in range(len(options)):
@@ -405,17 +415,34 @@ class Kalaha():
 
     def ai_menu(self):
         options = ["Easy", "Medium", "Hard"]
+        difficulty = {1: 1, 2: 4, 3: 7}
+        print("Choose a level of difficulty")
         for i in range(len(options)):
             print(f"{i+1}. {options[i]}")
         choice = 0
         while (choice not in [1,2,3]):
             while True:
                 try:
-                    choice = float(input("Enter a difficulty: "))
+                    choice = float(input("Enter a menu number: "))
                     break
                 except ValueError:
                     print("Please enter a valid number: ")
-        return choice
+        return difficulty[choice]
+    
+    def AI_plays_as(self):
+        options = ["Play as player 1", "Play as player 2"]
+        print("\nChoose to play as player 1 or 2")
+        for i in range(len(options)):
+            print(f"{i+1}. {options[i]}")
+        choice = 0
+        while (choice not in [1,2]):
+            while True:
+                try:
+                    choice = float(input("Enter a menu number: "))
+                    break
+                except ValueError:
+                    print("Please enter a valid number: ")
+        return 1 if choice == 2 else 2 # AI is opposite of what is chosen
 
 class AI():
     def __init__(self, players):
@@ -426,17 +453,20 @@ class AI():
    
     def alpha_beta_search(self, state, maximizing_player = 1, depth = 3): # the AI is maximizing
         '''
-        The alpha beta pruning search algorithm for finding the best move
+        The alpha beta pruning search algorithm for finding the best move.
+        `maximizing_player` is an int indicating the index of the player in `self.players` that is maximizing.
 
         Parameters
         ---------
         state: list
 
+        maximizing_player: int
+
+        depth: int
         '''
         self.action_score = dict() # dictionary of actions and corresponding score
-        
         self.maximizing_player = maximizing_player
-        self.minimizing_player = 0 if self.maximizing_player == 1 else 1
+        self.minimizing_player = 0 if self.maximizing_player == 1 else 1 # opposite of maximizing player
         actions = Board.possible_actions(state, True if self.maximizing_player == 0 else False)
         if len(actions) == 1:
             return actions[0] + 1 # if only one action is available AI picks it
@@ -519,11 +549,10 @@ if __name__ == '__main__':
     choice = kalaha.display_menu()
     if choice == 1:
         choice = kalaha.ai_menu()
-        kalaha.play_against_ai(choice)
+        AI_player_no = kalaha.AI_plays_as()
+        kalaha.play_against_ai(choice, AI_player=AI_player_no)
     elif choice == 2:
         print('\n' * 100)
         kalaha.play_against_human()
     elif choice == 3:
         print("Goodbye")
-        
-
