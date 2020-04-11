@@ -334,6 +334,7 @@ class Kalaha():
         Starts the kalaha game vs AI. Ends when one player wins.
         '''
         ai = AI(self.players)
+        
         game_over = False
         while not game_over:
             for player in self.players:
