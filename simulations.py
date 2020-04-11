@@ -6,13 +6,17 @@ win_player_2 = 0
 draw = 0
 score_list_p1 = []
 score_list_p2 = []
-simulations = 100
+
+simulations = 4
 
 kalaha = Kalaha()
 
+ai1_depth = 5
+ai2_depth = 1
+
 for i in range(simulations):
     kalaha.reset_board()
-    winner, score = kalaha.ai_against_ai(1,3)
+    winner, score = kalaha.ai_against_ai(ai1_depth, ai2_depth)
     if winner == 1:
         win_player_1 += 1
         score_list_p1.append(score)
