@@ -325,7 +325,7 @@ class Kalaha():
                     game_over = True
                     break
 
-    def play_against_ai(self):
+    def play_against_ai(self, d):
         '''
         Starts the kalaha game vs AI. Ends when one player wins.
         '''
@@ -340,9 +340,8 @@ class Kalaha():
                             print("AI's turn")
                             state_copy = self.board.state[:]   
                             print("AI thinking...")     
-                            print("state",state_copy)   
                             print(ai.alpha_beta_search(state_copy))                 
-                            best_move = ai.alpha_beta_search(state_copy)
+                            best_move = ai.alpha_beta_search(state_copy, depth = d)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
                         else:
@@ -359,7 +358,6 @@ class Kalaha():
         
         ai = AI(self.players)
 
-        
         game_over = False
         while not game_over:
             for player in self.players:
@@ -400,9 +398,21 @@ class Kalaha():
                     break
                 except ValueError:
                     print("Please enter a valid number: ")
-        
         return choice
 
+    def ai_menu(self):
+        options = ["Easy", "Medium", "Hard"]
+        for i in range(len(options)):
+            print(f"{i+1}. {options[i]}")
+        choice = 0
+        while (choice not in [1,2,3]):
+            while True:
+                try:
+                    choice = float(input("Enter a difficulty: "))
+                    break
+                except ValueError:
+                    print("Please enter a valid number: ")
+        return choice
 
 class AI():
     def __init__(self, players):
@@ -477,11 +487,14 @@ class AI():
         return v
 
     def utility(self, state):
+        utility = 0
         if self.maximizing_player == 0: 
-            return state[6] - state[13]
+            utility = state[6] - state[13]
         elif self.maximizing_player == 1:
-            return state[13] - state[6]
-        
+            utility = state[13] - state[6]
+        if Board.game_over(state):
+            utility += 1000
+        return utility
 
     def pick_best_move(self):
         '''
@@ -502,12 +515,12 @@ if __name__ == '__main__':
     print('\n' * 100)
     choice = kalaha.display_menu()
     if choice == 1:
-        print('\n' * 100)
-        kalaha.play_against_ai()
+        choice = kalaha.ai_menu()
+        kalaha.play_against_ai(choice)
     elif choice == 2:
         print('\n' * 100)
         kalaha.play_against_human()
     elif choice == 3:
-        kalaha.ai_against_ai(1,1)
+        print("Goodbye")
         
 

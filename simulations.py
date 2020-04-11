@@ -12,7 +12,7 @@ kalaha = Kalaha()
 
 for i in range(simulations):
     kalaha.reset_board()
-    winner, score = kalaha.ai_against_ai(3,1)
+    winner, score = kalaha.ai_against_ai(1,3)
     if winner == 1:
         win_player_1 += 1
         score_list_p1.append(score)
@@ -33,11 +33,13 @@ print(result)
 
 
 xbar=[1,2,3]
-plt.bar(xbar,[win_player_1, win_player_2, draw])
+plt.bar(xbar,[win_player_1, win_player_2, draw], width=0.4)
 plt.xticks(xbar, ('Player 1', 'Player 2', 'Draw'))
 plt.ylabel('Wins')
+plt.title("Simulations of AI vs AI")
 plt.show()
 
+"""
 x = list(range(simulations))
 plt.plot(x, score_list_p1, label="Player 1")
 plt.plot(x, score_list_p2, label="Player 2")
@@ -45,4 +47,4 @@ plt.xlabel("Games")
 plt.xticks(x)
 plt.ylabel("Points")
 plt.legend()
-#plt.show()
+#plt.show()"""
