@@ -1,5 +1,7 @@
 import operator
 import time
+from heapq import nlargest
+import random
 
 class Board:
     opposite_pit = dict()
@@ -75,7 +77,7 @@ class Board:
         
         the number of the pit the player has chosen
 
-        player: int
+        player: Player
 
         Returns
         ----------
@@ -154,10 +156,9 @@ class Board:
     @staticmethod
     def possible_actions(state, player1):
         """
-        Finds the possible picks/actions for player_no
+        Finds the possible picks/actions for player.
         """
         moves = []
-        #if player_no == 2
         start_index=7
         end_index=13
         if (player1):
@@ -190,9 +191,11 @@ class Player:
         """
         state, switch_turns = board.result(board.state, pick, self)
         board.state = state
-        print("\n")
-        board.print_board(0)
-        print("\n")
+        
+        if __name__ == '__main__': # so it doesnt print in simulations
+            print("\n")
+            board.print_board(0)
+            print("\n")
         return state, switch_turns
 
     
@@ -255,6 +258,9 @@ class Kalaha():
         self.players = [Player(1),Player(2)]
         self.player_1 = Player(1)
         self.player_2 = Player(2)
+
+    def reset_board(self):
+        self.board.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
 
     def announce_winner(self):
         winner, score = self.board.check_winner(self.board.state)
@@ -323,7 +329,7 @@ class Kalaha():
                     game_over = True
                     break
 
-    def play_against_ai(self):
+    def play_against_ai(self, d):
         '''
         Starts the kalaha game vs AI. Ends when one player wins.
         '''
@@ -334,16 +340,14 @@ class Kalaha():
                 if not self.board.game_over(self.board.state):
                     switch_turns = False
                     while not switch_turns:
-                        
                         if (player.player_no == 2):
                             print("AI's turn")
                             state_copy = self.board.state[:]   
-                            print("AI thinking...")                         
-                            best_move = ai.alpha_beta_search(state_copy)
-                            #time.sleep(2)
+                            print("AI thinking...")     
+                            print(ai.alpha_beta_search(state_copy))                 
+                            best_move = ai.alpha_beta_search(state_copy, depth = d)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
-                            #time.sleep(2)
                         else:
                             print("Turn of player", player.player_no,"\n")
                             pick = self.player_input(player.player_no)
@@ -354,7 +358,38 @@ class Kalaha():
                     game_over = True
                     break
 
-    
+    def ai_against_ai(self, depth_p1, depth_p2):
+        
+        ai = AI(self.players)
+
+        game_over = False
+        while not game_over:
+            for player in self.players:
+                if not self.board.game_over(self.board.state):
+                    switch_turns = False
+                    while not switch_turns:
+                        if player.player_no == 1:
+                            #print("AI 1's turn")
+                            state_copy = self.board.state[:]   
+                            #print("AI thinking...")                         
+                            best_move = ai.alpha_beta_search(state_copy, maximizing_player = 0, depth=depth_p1)
+                            #print("AI picks",best_move)
+                            s, switch_turns = player.move(self.board, best_move-1)
+                        else:
+                            #print("AI 2's turn")
+                            state_copy = self.board.state[:]
+                            #print("AI thinking...")
+                            best_move = ai.alpha_beta_search(state_copy, maximizing_player = 1, depth = depth_p2)
+                            #print("AI picks",best_move)
+                            s, switch_turns = player.move(self.board, best_move-1)
+                else:
+                    if __name__ == '__main__': # so it does not show in simulations
+                        self.announce_winner()
+                    game_over = True
+                    return self.board.check_winner(self.board.state)
+                    break
+
+
     def display_menu(self):
         options = ["Play against AI", "Play against another player", "Exit"]
         for i in range(len(options)):
@@ -367,18 +402,30 @@ class Kalaha():
                     break
                 except ValueError:
                     print("Please enter a valid number: ")
-        
         return choice
 
-
+    def ai_menu(self):
+        options = ["Easy", "Medium", "Hard"]
+        for i in range(len(options)):
+            print(f"{i+1}. {options[i]}")
+        choice = 0
+        while (choice not in [1,2,3]):
+            while True:
+                try:
+                    choice = float(input("Enter a difficulty: "))
+                    break
+                except ValueError:
+                    print("Please enter a valid number: ")
+        return choice
 
 class AI():
     def __init__(self, players):
         self.players = players
         self.action_score = dict()
-
-    
-    def alpha_beta_search(self, state, d = 3): # the AI is maximizing
+        self.maximizing_player = None
+        self.minimizing_player = None
+   
+    def alpha_beta_search(self, state, maximizing_player = 1, depth = 3): # the AI is maximizing
         '''
         The alpha beta pruning search algorithm for finding the best move
 
@@ -386,33 +433,31 @@ class AI():
         ---------
         state: list
 
-        d: int
-
-        the max depth of the algorithm
-
         '''
         self.action_score = dict() # dictionary of actions and corresponding score
-        depth = d
-        actions = Board.possible_actions(state, False)
+        
+        self.maximizing_player = maximizing_player
+        self.minimizing_player = 0 if self.maximizing_player == 1 else 1
+        actions = Board.possible_actions(state, True if self.maximizing_player == 0 else False)
         if len(actions) == 1:
             return actions[0] + 1 # if only one action is available AI picks it
         for action in actions:
-            s, switch_turns = Board.result(state, action, self.players[1])
+            s, switch_turns = Board.result(state, action, self.players[self.maximizing_player])
             result_state = s[:] # copy of resulting board state of making that action
             if switch_turns:
                 v = self.min_value(result_state,-100,100,depth-1)
             else: # if it is still the AI's turn it will keep maximizing
                 v = self.max_value(result_state,-100,100,depth)
             d = {action+1: v}
-            self.action_score.update(d)      
-        return max(self.action_score.items(), key = operator.itemgetter(1))[0] # gets key/action with highest value i.e. the best move
+            self.action_score.update(d)
+        return self.pick_best_move()
 
     def max_value(self, state, alpha, beta, depth):
         if (Board.game_over(state) or depth == 0):
             return self.utility(state)
         v = -100
-        for action in Board.possible_actions(state, False):
-            s, switch_turns = Board.result(state, action, self.players[1])
+        for action in Board.possible_actions(state, True if self.maximizing_player == 0 else False):
+            s, switch_turns = Board.result(state, action, self.players[self.maximizing_player])
             result_state = s[:]
             if (switch_turns):
                 v = max(v, self.min_value(result_state, alpha, beta, depth-1))
@@ -430,8 +475,8 @@ class AI():
         if (Board.game_over(state) or depth==0):
             return self.utility(state)
         v = 100
-        for action in Board.possible_actions(state, True):
-            s, switch_turns = Board.result(state, action, self.players[0])
+        for action in Board.possible_actions(state, False if self.maximizing_player == 0 else True):
+            s, switch_turns = Board.result(state, action, self.players[self.minimizing_player])
             result_state = s[:]
             if (switch_turns):
                 v = min(v, self.max_value(result_state, -100, beta, depth-1))
@@ -446,16 +491,36 @@ class AI():
         return v
 
     def utility(self, state):
-        return state[13]-state[6]
-    
+        utility = 0
+        if self.maximizing_player == 0: 
+            utility = state[6] - state[13]
+        elif self.maximizing_player == 1:
+            utility = state[13] - state[6]
+        if Board.game_over(state):
+            utility += 1000
+        return utility
+
+    def pick_best_move(self):
+        '''
+        Picking the best move based on the alpha beta search. If there are several moves that are equally good
+        the AI will randomly choose one of them. 
+        '''
+        max_score_index = max(self.action_score.items(), key = operator.itemgetter(1))[0] # gets key/action with highest value i.e. the best move
+        max_score = self.action_score[max_score_index]
+        no_of_max_scores = 0 
+        for key in self.action_score.keys(): # as there might be more moves that result in the max_score we find those
+            if self.action_score[key] == max_score:
+                no_of_max_scores += 1
+        choices = nlargest(no_of_max_scores, self.action_score, key = self.action_score.get)
+        return random.choice(choices)
 
 if __name__ == '__main__':
     kalaha = Kalaha()
     print('\n' * 100)
     choice = kalaha.display_menu()
     if choice == 1:
-        print('\n' * 100)
-        kalaha.play_against_ai()
+        choice = kalaha.ai_menu()
+        kalaha.play_against_ai(choice)
     elif choice == 2:
         print('\n' * 100)
         kalaha.play_against_human()
