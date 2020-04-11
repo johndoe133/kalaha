@@ -329,7 +329,7 @@ class Kalaha():
                     game_over = True
                     break
 
-    def play_against_ai(self, d):
+    def play_against_ai(self, d, AI_player = 2):
         '''
         Starts the kalaha game vs AI. Ends when one player wins.
         '''
@@ -340,11 +340,12 @@ class Kalaha():
                 if not self.board.game_over(self.board.state):
                     switch_turns = False
                     while not switch_turns:
-                        if (player.player_no == 2):
+                        # AIs turn
+                        if (player.player_no == AI_player):
                             print("AI's turn")
                             state_copy = self.board.state[:]   
                             print("AI thinking...")       
-                            best_move = ai.alpha_beta_search(state_copy, depth = d)
+                            best_move = ai.alpha_beta_search(state_copy, depth = d, maximizing_player = 1 if AI_player == 2 else 0)
                             print("AI picks",best_move)
                             s, switch_turns = player.move(self.board, best_move-1)
                         else:
@@ -405,17 +406,33 @@ class Kalaha():
 
     def ai_menu(self):
         options = ["Easy", "Medium", "Hard"]
+        print("Choose a level of difficulty")
         for i in range(len(options)):
             print(f"{i+1}. {options[i]}")
         choice = 0
         while (choice not in [1,2,3]):
             while True:
                 try:
-                    choice = float(input("Enter a difficulty: "))
+                    choice = float(input("Enter a menu number: "))
                     break
                 except ValueError:
                     print("Please enter a valid number: ")
         return choice
+    
+    def AI_plays_as(self):
+        options = ["Play as player 1", "Play as player 2"]
+        print("\nChoose to play as player 1 or 2")
+        for i in range(len(options)):
+            print(f"{i+1}. {options[i]}")
+        choice = 0
+        while (choice not in [1,2]):
+            while True:
+                try:
+                    choice = float(input("Enter a menu number: "))
+                    break
+                except ValueError:
+                    print("Please enter a valid number: ")
+        return 1 if choice == 2 else 2
 
 class AI():
     def __init__(self, players):
@@ -519,11 +536,10 @@ if __name__ == '__main__':
     choice = kalaha.display_menu()
     if choice == 1:
         choice = kalaha.ai_menu()
-        kalaha.play_against_ai(choice)
+        AI_player_no = kalaha.AI_plays_as()
+        kalaha.play_against_ai(choice, AI_player=AI_player_no)
     elif choice == 2:
         print('\n' * 100)
         kalaha.play_against_human()
     elif choice == 3:
         print("Goodbye")
-        
-
