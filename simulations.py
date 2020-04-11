@@ -1,6 +1,7 @@
 from kalaha import Kalaha, AI, Player, Board
 import matplotlib.pyplot as plt
 from statistics import stdev, mean
+import time
 
 def run_sim(simulations, ai1_depth, ai2_depth):
     
@@ -60,4 +61,10 @@ def run_sim(simulations, ai1_depth, ai2_depth):
 # run_sim(1000,4,1)
 # run_sim(1000,5,1)
 # run_sim(1000,6,1)
-run_sim(10,1,7)
+# run_sim(100,1,7)
+
+#runtime of algortihm with depth 7
+ai = AI([Player(1), Player(2)])
+a = time.time()
+ai.alpha_beta_search([4, 4, 4, 4, 4, 4, 0, 4,4,4, 4, 4, 4, 0],depth=7)
+print("Runtime", time.time() - a)
