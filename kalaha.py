@@ -407,6 +407,7 @@ class Kalaha():
 
     def ai_menu(self):
         options = ["Easy", "Medium", "Hard"]
+        difficulty = {1: 1, 2: 4, 3: 7}
         print("Choose a level of difficulty")
         for i in range(len(options)):
             print(f"{i+1}. {options[i]}")
@@ -418,7 +419,7 @@ class Kalaha():
                     break
                 except ValueError:
                     print("Please enter a valid number: ")
-        return choice
+        return difficulty[choice]
     
     def AI_plays_as(self):
         options = ["Play as player 1", "Play as player 2"]

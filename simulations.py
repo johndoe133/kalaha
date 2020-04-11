@@ -58,5 +58,6 @@ def run_sim(simulations, ai1_depth, ai2_depth):
 # run_sim(1000,2,1)
 # run_sim(1000,3,1)
 # run_sim(1000,4,1)
-run_sim(1000,5,1)
+# run_sim(1000,5,1)
 # run_sim(1000,6,1)
+run_sim(10,1,7)
