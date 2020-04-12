@@ -129,7 +129,8 @@ class Board:
                     switch_turns = False
         return state, switch_turns
 
-    def check_winner(self, state):
+    @staticmethod
+    def check_winner(state):
         '''
         Checks who the winner is
         
@@ -281,7 +282,7 @@ class Kalaha():
         self.board.state = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0]
 
     def announce_winner(self):
-        winner, score = self.board.check_winner(self.board.state)
+        winner, score = Board.check_winner(self.board.state)
         print("GAME OVER!")
         if winner == 3:
             print("The game was a draw")
@@ -395,7 +396,7 @@ class Kalaha():
                     if __name__ == '__main__': # so it does not show in simulations
                         self.announce_winner()
                     game_over = True
-                    return self.board.check_winner(self.board.state)
+                    return Board.check_winner(self.board.state)
                     break
 
     # menues
@@ -483,7 +484,7 @@ class AI():
 
     def max_value(self, state, alpha, beta, depth):
         if (Board.game_over(state) or depth == 0):
-            return self.utility(state)
+            return self.eval(state)
         v = -100
         for action in Board.possible_actions(state, True if self.maximizing_player == 0 else False):
             s, switch_turns = Board.result(state, action, self.players[self.maximizing_player])
@@ -502,7 +503,7 @@ class AI():
 
     def min_value(self, state, alpha, beta, depth):
         if (Board.game_over(state) or depth==0):
-            return self.utility(state)
+            return self.eval(state)
         v = 100
         for action in Board.possible_actions(state, False if self.maximizing_player == 0 else True):
             s, switch_turns = Board.result(state, action, self.players[self.minimizing_player])
@@ -519,15 +520,26 @@ class AI():
                 alpha = max(alpha, v)
         return v
 
-    def utility(self, state):
-        utility = 0
+    def eval(self, state):
+        evaluation = 0
         if self.maximizing_player == 0: 
-            utility = state[6] - state[13]
+            evaluation = state[6] - state[13]
         elif self.maximizing_player == 1:
-            utility = state[13] - state[6]
+            evaluation = state[13] - state[6]
+        
         if Board.game_over(state):
-            utility += 1000
-        return utility
+            winner = Board.check_winner(state)
+            # maximizing player wins:
+            if self.maximizing_player == 0 and winner == 1:
+                evaluation += 1000
+            elif self.maximizing_player == 1 and winner == 2:
+                evaluation += 1000
+            # maximizing player losses:
+            elif self.maximizing_player == 0 and winner == 2:
+                evaluation -= 1000
+            elif self.maximizing_player == 1 and winner == 1:
+                evaluation -= 1000
+        return evaluation
 
     def pick_best_move(self):
         '''
