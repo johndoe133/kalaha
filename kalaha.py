@@ -558,13 +558,17 @@ class AI():
 if __name__ == '__main__':
     kalaha = Kalaha()
     print('\n' * 100)
-    choice = kalaha.display_menu()
-    if choice == 1:
-        choice = kalaha.ai_menu()
-        AI_player_no = kalaha.AI_plays_as()
-        kalaha.play_against_ai(choice, AI_player=AI_player_no)
-    elif choice == 2:
-        print('\n' * 100)
-        kalaha.play_against_human()
-    elif choice == 3:
-        print("Goodbye")
+    while True:
+        choice = kalaha.display_menu()
+        if choice == 1:
+            choice = kalaha.ai_menu()
+            AI_player_no = kalaha.AI_plays_as()
+            kalaha.play_against_ai(choice, AI_player=AI_player_no)
+        elif choice == 2:
+            print('\n' * 100)
+            kalaha.play_against_human()
+        elif choice == 3:
+            print("Goodbye")
+            time.sleep(2)
+            break
+        print('\n'*2)
