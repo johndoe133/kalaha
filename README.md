@@ -5,4 +5,4 @@ This is a hand-in for the first mandatory assignment for the course 02180 Intro 
 Have Python3 installed on your machine. Run kalaha.py using Terminal/Command Prompt, or a suitable IDE. Upon running the script, a menu will be shown where the user is propmted to choose the type of game they would like to play.
 
 ## Simulations
-In simulations.py, use the function run_sim(n, ai1_depth, ai2_depth) to run n number of matches between two AIs with a specific cutoff-dept. The function should output a barplot comparing the results between the two players.
+In simulations.py, use the function run_sim(n, ai1_depth, ai2_depth) to run n number of matches between two AIs with a specific cutoff-dept. The function outputs a barplot comparing the results between the two players.
